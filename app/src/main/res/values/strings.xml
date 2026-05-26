@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Focus Blocker</string>
+    <string name="accessibility_service_description">This service is used to monitor which apps are opened in order to block restricted apps during a focus session.</string>
 </resources>
