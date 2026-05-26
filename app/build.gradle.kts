@@ -20,9 +20,9 @@ android {
             val keystoreFile = file("release-keystore.jks")
             if (keystoreFile.exists() || System.getenv("CI") == "true") {
                 storeFile = file(System.getenv("KEYSTORE_FILE") ?: "release-keystore.jks")
-                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "dummy_password"
-                keyAlias = System.getenv("KEY_ALIAS") ?: "dummy_alias"
-                keyPassword = System.getenv("KEY_PASSWORD") ?: "dummy_password"
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
             }
         }
     }
