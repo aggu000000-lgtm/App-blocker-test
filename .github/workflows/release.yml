@@ -25,24 +25,42 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Decode Keystore
+    - name: Verify and Decode Keystore
       env:
         ENCODED_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 }}
       run: |
-        # Create a dummy keystore if the secret is empty (for POC purposes)
         if [ -z "$ENCODED_KEYSTORE" ]; then
-          keytool -genkey -v -keystore app/release-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias dummy_alias -storepass dummy_password -keypass dummy_password -dname "CN=POC, OU=IT, O=Company, L=City, ST=State, C=US"
-        else
-          echo $ENCODED_KEYSTORE | base64 -d > app/release-keystore.jks
+          echo "ERROR: KEYSTORE_BASE64 secret is missing. Aborting release."
+          exit 1
         fi
+        echo "$ENCODED_KEYSTORE" | base64 -d > app/release-keystore.jks
+
+    - name: Verify Keystore Security Health
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      run: |
+        chmod +x scripts/verify_keystore.sh
+        ./scripts/verify_keystore.sh app/release-keystore.jks "$KEYSTORE_PASSWORD" "$KEY_ALIAS"
+
+    - name: Upload Security Health Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-health-report
+        path: security_health_report.txt
 
     - name: Build Release APK
       env:
-        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'dummy_password' }}
-        KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'dummy_alias' }}
-        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'dummy_password' }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         KEYSTORE_FILE: "release-keystore.jks"
-      run: ./gradlew :app:assembleRelease
+      run: |
+        if [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+          echo "ERROR: One or more signing secrets (KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD) are missing. Aborting release."
+          exit 1
+        fi
+        ./gradlew :app:assembleRelease
 
     - name: Upload Release Artifact
       uses: actions/upload-artifact@v4

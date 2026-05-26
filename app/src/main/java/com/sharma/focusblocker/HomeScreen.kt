@@ -32,6 +32,40 @@ fun HomeScreen(onNavigateToFeature: () -> Unit) {
     }
     var packageInput by remember { mutableStateOf("") }
 
+    var showDisclosureDialog by remember { mutableStateOf(false) }
+
+    if (showDisclosureDialog) {
+        AlertDialog(
+            onDismissRequest = { showDisclosureDialog = false },
+            title = { Text("Accessibility Permission Required") },
+            text = {
+                Text(
+                    "Focus Blocker needs Accessibility Service permission to function.\n\n" +
+                    "Purpose: This app uses the Accessibility API to monitor the apps you open and block them if they are on your restricted list during a focus session.\n\n" +
+                    "Data Privacy: No personal or sensitive data is collected, stored, or transmitted by this service."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDisclosureDialog = false
+                        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text("Accept")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDisclosureDialog = false }
+                ) {
+                    Text("Deny")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -50,8 +84,7 @@ fun HomeScreen(onNavigateToFeature: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
                 if (!isAccessibilityEnabled) {
                     Button(onClick = {
-                        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                        context.startActivity(intent)
+                        showDisclosureDialog = true
                     }) {
                         Text("Grant Accessibility Permission")
                     }
