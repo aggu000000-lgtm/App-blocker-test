@@ -1,37 +1,47 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("com.example.buildlogic.android-application")
+    id("com.example.buildlogic.android-compose")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
 
 android {
     namespace = "com.sharma.focusblocker"
-    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.sharma.focusblocker"
-        minSdk = 24
-        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = "17"
+    signingConfigs {
+        create("release") {
+            val keystoreFile = file("release-keystore.jks")
+            if (keystoreFile.exists() || System.getenv("CI") == "true") {
+                storeFile = file(System.getenv("KEYSTORE_FILE") ?: "release-keystore.jks")
+                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "dummy_password"
+                keyAlias = System.getenv("KEY_ALIAS") ?: "dummy_alias"
+                keyPassword = System.getenv("KEY_PASSWORD") ?: "dummy_password"
+            }
+        }
     }
 
-    buildFeatures {
-        compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            val keystoreFile = file("release-keystore.jks")
+            if (keystoreFile.exists() || System.getenv("CI") == "true") {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
+        }
     }
 }
 
