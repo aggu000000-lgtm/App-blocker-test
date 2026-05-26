@@ -1,11 +1,7 @@
 package com.sharma.focusblocker
 
-import android.accessibilityservice.AccessibilityService
-import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import android.text.TextUtils
-import android.view.accessibility.AccessibilityManager
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,17 +11,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import com.sharma.focusblocker.components.RecoveryCarousel
 import com.sharma.focusblocker.data.BlockerPreferences
 import com.sharma.focusblocker.service.FocusAccessibilityService
+import com.sharma.focusblocker.util.PermissionUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onNavigateToFeature: () -> Unit) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val prefs = remember { BlockerPreferences(context) }
     
     var isAccessibilityEnabled by remember { 
-        mutableStateOf(isAccessibilityServiceEnabled(context, FocusAccessibilityService::class.java)) 
+        mutableStateOf(PermissionUtils.isAccessibilityServiceEnabled(context, FocusAccessibilityService::class.java)) 
     }
     var restrictedPackages by remember { 
         mutableStateOf(prefs.getRestrictedPackages().toList()) 
@@ -33,6 +35,26 @@ fun HomeScreen(onNavigateToFeature: () -> Unit) {
     var packageInput by remember { mutableStateOf("") }
 
     var showDisclosureDialog by remember { mutableStateOf(false) }
+    var showRecoveryCarousel by remember { mutableStateOf(false) }
+    var hasLaunchedSettings by remember { mutableStateOf(false) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isAccessibilityEnabled = PermissionUtils.isAccessibilityServiceEnabled(context, FocusAccessibilityService::class.java)
+                if (hasLaunchedSettings) {
+                    hasLaunchedSettings = false
+                    if (!isAccessibilityEnabled && PermissionUtils.isRestrictedSettingsAffected(context)) {
+                        showRecoveryCarousel = true
+                    }
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     if (showDisclosureDialog) {
         AlertDialog(
@@ -49,6 +71,7 @@ fun HomeScreen(onNavigateToFeature: () -> Unit) {
                 TextButton(
                     onClick = {
                         showDisclosureDialog = false
+                        hasLaunchedSettings = true
                         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                         context.startActivity(intent)
                     }
@@ -78,6 +101,12 @@ fun HomeScreen(onNavigateToFeature: () -> Unit) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        if (showRecoveryCarousel) {
+            Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+                RecoveryCarousel(onDismiss = { showRecoveryCarousel = false })
+            }
+        }
+
         Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = "Accessibility Permission Status: ${if (isAccessibilityEnabled) "Granted" else "Not Granted"}")
@@ -90,7 +119,7 @@ fun HomeScreen(onNavigateToFeature: () -> Unit) {
                     }
                 } else {
                     Button(onClick = {
-                        isAccessibilityEnabled = isAccessibilityServiceEnabled(context, FocusAccessibilityService::class.java)
+                        isAccessibilityEnabled = PermissionUtils.isAccessibilityServiceEnabled(context, FocusAccessibilityService::class.java)
                     }) {
                         Text("Refresh Status")
                     }
@@ -143,22 +172,4 @@ fun HomeScreen(onNavigateToFeature: () -> Unit) {
             Text("Go to Feature")
         }
     }
-}
-
-fun isAccessibilityServiceEnabled(context: Context, service: Class<out AccessibilityService>): Boolean {
-    val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-    val enabledServices = Settings.Secure.getString(
-        context.contentResolver,
-        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-    ) ?: return false
-    
-    val colonSplitter = TextUtils.SimpleStringSplitter(':')
-    colonSplitter.setString(enabledServices)
-    while (colonSplitter.hasNext()) {
-        val componentName = colonSplitter.next()
-        if (componentName.equals("${context.packageName}/${service.name}", ignoreCase = true)) {
-            return true
-        }
-    }
-    return false
 }
