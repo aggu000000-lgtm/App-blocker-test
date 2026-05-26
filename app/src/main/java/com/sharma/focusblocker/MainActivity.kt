@@ -5,14 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.feature.FeatureScreen
+import com.sharma.focusblocker.ui.ScheduleManagementScreen
 import com.sharma.focusblocker.ui.theme.FocusBlockerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -33,7 +32,12 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("home") {
                             HomeScreen(
-                                onNavigateToFeature = { navController.navigate("feature") }
+                                onNavigateToManageSchedules = { navController.navigate("schedules") }
+                            )
+                        }
+                        composable("schedules") {
+                            ScheduleManagementScreen(
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
                         composable("feature") {

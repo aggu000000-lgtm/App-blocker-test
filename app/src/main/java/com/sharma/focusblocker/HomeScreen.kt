@@ -3,8 +3,6 @@ package com.sharma.focusblocker
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,24 +13,18 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.sharma.focusblocker.components.RecoveryCarousel
-import com.sharma.focusblocker.data.BlockerPreferences
 import com.sharma.focusblocker.service.FocusAccessibilityService
 import com.sharma.focusblocker.util.PermissionUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onNavigateToFeature: () -> Unit) {
+fun HomeScreen(onNavigateToManageSchedules: () -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val prefs = remember { BlockerPreferences(context) }
     
     var isAccessibilityEnabled by remember { 
         mutableStateOf(PermissionUtils.isAccessibilityServiceEnabled(context, FocusAccessibilityService::class.java)) 
     }
-    var restrictedPackages by remember { 
-        mutableStateOf(prefs.getRestrictedPackages().toList()) 
-    }
-    var packageInput by remember { mutableStateOf("") }
 
     var showDisclosureDialog by remember { mutableStateOf(false) }
     var showRecoveryCarousel by remember { mutableStateOf(false) }
@@ -127,49 +119,8 @@ fun HomeScreen(onNavigateToFeature: () -> Unit) {
             }
         }
 
-        Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Restricted Packages", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = packageInput,
-                    onValueChange = { packageInput = it },
-                    label = { Text("Package Name (e.g. com.example.app)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = {
-                    if (packageInput.isNotBlank()) {
-                        prefs.addRestrictedPackage(packageInput.trim())
-                        restrictedPackages = prefs.getRestrictedPackages().toList()
-                        packageInput = ""
-                    }
-                }) {
-                    Text("Add Package")
-                }
-            }
-        }
-
-        LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            items(restrictedPackages) { pkg ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = pkg)
-                    Button(onClick = {
-                        prefs.removeRestrictedPackage(pkg)
-                        restrictedPackages = prefs.getRestrictedPackages().toList()
-                    }) {
-                        Text("Remove")
-                    }
-                }
-            }
-        }
-
-        Button(onClick = onNavigateToFeature, modifier = Modifier.padding(top = 16.dp)) {
-            Text("Go to Feature")
+        Button(onClick = onNavigateToManageSchedules, modifier = Modifier.padding(top = 16.dp)) {
+            Text("Manage Schedules")
         }
     }
 }
