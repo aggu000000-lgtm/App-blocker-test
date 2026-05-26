@@ -1,31 +1,13 @@
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    id("com.example.buildlogic.android-library")
+    id("com.example.buildlogic.android-compose")
 }
 
 android {
     namespace = "com.example.designsystem"
-    compileSdk = 34
 
     defaultConfig {
-        minSdk = 24
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
     }
     
     testOptions {

@@ -1,33 +1,16 @@
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    id("com.example.buildlogic.android-library")
+    id("com.example.buildlogic.android-compose")
+    id("com.example.buildlogic.verify-architecture")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
 
 android {
     namespace = "com.example.feature"
-    compileSdk = 34
 
     defaultConfig {
-        minSdk = 24
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
     }
 }
 
@@ -42,5 +25,4 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.48.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
-    // Note: No material3 dependency here to enforce isolation
 }
