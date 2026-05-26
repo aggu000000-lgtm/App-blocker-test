@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "DesignSystemAbstraction"
 include(":design-system")
 include(":feature")
+include(":app")
