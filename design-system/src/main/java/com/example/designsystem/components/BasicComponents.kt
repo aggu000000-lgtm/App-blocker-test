@@ -60,8 +60,8 @@ fun CatalogCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CatalogTopAppBar(title: @Composable () -> Unit) {
-    TopAppBar(title = title)
+fun CatalogTopAppBar(title: @Composable () -> Unit, modifier: Modifier = Modifier) {
+    TopAppBar(title = title, modifier = modifier)
 }
 
 @Composable

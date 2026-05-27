@@ -11,11 +11,10 @@ import com.sharma.focusblocker.data.Schedule
 @Composable
 fun ScheduleManagementScreen(
     onNavigateBack: () -> Unit,
+    onEditSchedule: (String?) -> Unit,
     viewModel: ScheduleViewModel = hiltViewModel()
 ) {
     val schedules by viewModel.schedules.collectAsState()
-    var editingSchedule by remember { mutableStateOf<Schedule?>(null) }
-    var showCreateDialog by remember { mutableStateOf(false) }
 
     CatalogScaffold(
         topBar = {
@@ -23,7 +22,7 @@ fun ScheduleManagementScreen(
         },
         floatingActionButton = {
             CatalogFloatingAppBar {
-                CatalogButton(onClick = { showCreateDialog = true }) {
+                CatalogButton(onClick = { onEditSchedule(null) }) {
                     CatalogText("New Schedule")
                 }
             }
@@ -35,7 +34,8 @@ fun ScheduleManagementScreen(
                 name = s.name,
                 timeInfo = "${s.startHour.toString().padStart(2, '0')}:${s.startMinute.toString().padStart(2, '0')} - ${s.endHour.toString().padStart(2, '0')}:${s.endMinute.toString().padStart(2, '0')}",
                 daysInfo = formatDays(s.daysOfWeek),
-                isEnabled = s.isEnabled
+                isEnabled = s.isEnabled,
+                transitionTag = "schedule_card_${s.id}"
             )
         }
         
@@ -46,35 +46,9 @@ fun ScheduleManagementScreen(
                 if (s != null) viewModel.toggleSchedule(s, enabled)
             },
             onEdit = { id ->
-                editingSchedule = schedules.find { it.id == id }
+                onEditSchedule(id)
             },
-            modifier = Modifier.padding(padding).fillMaxSize()
-        )
-    }
-
-    if (showCreateDialog) {
-        ScheduleEditDialog(
-            schedule = null,
-            onSave = { s -> 
-                viewModel.saveSchedule(s)
-                showCreateDialog = false
-            },
-            onDismiss = { showCreateDialog = false }
-        )
-    }
-
-    editingSchedule?.let { schedule ->
-        ScheduleEditDialog(
-            schedule = schedule,
-            onSave = { s -> 
-                viewModel.saveSchedule(s)
-                editingSchedule = null
-            },
-            onDelete = {
-                viewModel.deleteSchedule(schedule)
-                editingSchedule = null
-            },
-            onDismiss = { editingSchedule = null }
+            modifier = Modifier.padding(padding).fillMaxSize().cinematicLayout()
         )
     }
 }

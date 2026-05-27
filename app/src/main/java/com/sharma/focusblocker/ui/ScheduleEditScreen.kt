@@ -3,20 +3,22 @@ package com.sharma.focusblocker.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.designsystem.components.*
 import com.sharma.focusblocker.data.Schedule
 
 @Composable
-fun ScheduleEditDialog(
-    schedule: Schedule?,
-    onSave: (Schedule) -> Unit,
-    onDelete: (() -> Unit)? = null,
-    onDismiss: () -> Unit
+fun ScheduleEditScreen(
+    scheduleId: String?,
+    onNavigateBack: () -> Unit,
+    viewModel: ScheduleViewModel = hiltViewModel()
 ) {
+    val schedules by viewModel.schedules.collectAsState()
+    val schedule = schedules.find { it.id == scheduleId }
+
     var name by remember { mutableStateOf(schedule?.name ?: "") }
     var startHour by remember { mutableStateOf(schedule?.startHour ?: 9) }
     var startMinute by remember { mutableStateOf(schedule?.startMinute ?: 0) }
@@ -27,45 +29,33 @@ fun ScheduleEditDialog(
     
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
-
     var packageInput by remember { mutableStateOf("") }
+    
+    CinematicHapticFeedback()
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            CatalogButton(onClick = {
-                onSave(
-                    Schedule(
-                        id = schedule?.id ?: java.util.UUID.randomUUID().toString(),
-                        name = name.ifBlank { "Untitled" },
-                        isEnabled = schedule?.isEnabled ?: true,
-                        startHour = startHour,
-                        startMinute = startMinute,
-                        endHour = endHour,
-                        endMinute = endMinute,
-                        daysOfWeek = daysOfWeek,
-                        blockedPackages = blockedPackages
-                    )
-                )
-            }) {
-                CatalogText("Save")
+    CatalogScaffold(
+        topBar = {
+            CatalogTopAppBar(title = { CatalogText(if (schedule == null) "New Schedule" else "Edit Schedule") })
+        }
+    ) { padding ->
+        val modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()
+            .padding(16.dp)
+            .let { 
+                if (schedule != null) {
+                    it.cinematicSharedElement("schedule_card_${schedule.id}")
+                } else it 
             }
-        },
-        dismissButton = {
-            Row {
-                if (onDelete != null) {
-                    CatalogTextButton(onClick = onDelete) {
-                        CatalogText("Delete")
-                    }
-                }
-                CatalogTextButton(onClick = onDismiss) {
-                    CatalogText("Cancel")
-                }
-            }
-        },
-        title = { CatalogText(if (schedule == null) "New Schedule" else "Edit Schedule") },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            .cinematicLayout()
+
+        CatalogCard(modifier = modifier) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
                 CatalogOutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -90,7 +80,6 @@ fun ScheduleEditDialog(
                     1 to "Sun", 2 to "Mon", 3 to "Tue", 4 to "Wed", 
                     5 to "Thu", 6 to "Fri", 7 to "Sat"
                 )
-                // Use a wrap layout or columns
                 days.chunked(3).forEach { rowDays ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                         rowDays.forEach { (day, label) ->
@@ -141,9 +130,39 @@ fun ScheduleEditDialog(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    if (schedule != null) {
+                        CatalogTextButton(onClick = {
+                            viewModel.deleteSchedule(schedule)
+                            onNavigateBack()
+                        }) {
+                            CatalogText("Delete")
+                        }
+                    }
+                    CatalogButton(onClick = {
+                        viewModel.saveSchedule(
+                            Schedule(
+                                id = schedule?.id ?: java.util.UUID.randomUUID().toString(),
+                                name = name.ifBlank { "Untitled" },
+                                isEnabled = schedule?.isEnabled ?: true,
+                                startHour = startHour,
+                                startMinute = startMinute,
+                                endHour = endHour,
+                                endMinute = endMinute,
+                                daysOfWeek = daysOfWeek,
+                                blockedPackages = blockedPackages
+                            )
+                        )
+                        onNavigateBack()
+                    }) {
+                        CatalogText("Save")
+                    }
+                }
             }
         }
-    )
+    }
 
     if (showStartTimePicker) {
         CatalogTimePickerDialog(
