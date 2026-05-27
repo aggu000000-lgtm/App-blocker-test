@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "DesignSystemAbstraction"
+include(":ui-assets")
 include(":design-system")
 include(":feature")
 include(":app")

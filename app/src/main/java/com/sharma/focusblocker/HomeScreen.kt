@@ -16,6 +16,11 @@ import com.sharma.focusblocker.components.RecoveryCarousel
 import com.sharma.focusblocker.service.FocusAccessibilityService
 import com.sharma.focusblocker.util.PermissionUtils
 
+import com.example.designsystem.components.CatalogBrandedTopAppBar
+import com.example.designsystem.components.CatalogScaffold
+import com.example.designsystem.components.CatalogAppLogo
+import com.example.designsystem.components.CatalogText
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onNavigateToManageSchedules: () -> Unit) {
@@ -81,46 +86,50 @@ fun HomeScreen(onNavigateToManageSchedules: () -> Unit) {
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Focus Blocker Foundation",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        if (showRecoveryCarousel) {
-            Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
-                RecoveryCarousel(onDismiss = { showRecoveryCarousel = false })
-            }
+    CatalogScaffold(
+        topBar = {
+            CatalogBrandedTopAppBar(
+                title = { CatalogText("Focus Blocker Foundation") },
+                logo = { CatalogAppLogo() }
+            )
         }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (showRecoveryCarousel) {
+                Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+                    RecoveryCarousel(onDismiss = { showRecoveryCarousel = false })
+                }
+            }
 
-        Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Accessibility Permission Status: ${if (isAccessibilityEnabled) "Granted" else "Not Granted"}")
-                Spacer(modifier = Modifier.height(8.dp))
-                if (!isAccessibilityEnabled) {
-                    Button(onClick = {
-                        showDisclosureDialog = true
-                    }) {
-                        Text("Grant Accessibility Permission")
-                    }
-                } else {
-                    Button(onClick = {
-                        isAccessibilityEnabled = PermissionUtils.isAccessibilityServiceEnabled(context, FocusAccessibilityService::class.java)
-                    }) {
-                        Text("Refresh Status")
+            Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Accessibility Permission Status: ${if (isAccessibilityEnabled) "Granted" else "Not Granted"}")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (!isAccessibilityEnabled) {
+                        Button(onClick = {
+                            showDisclosureDialog = true
+                        }) {
+                            Text("Grant Accessibility Permission")
+                        }
+                    } else {
+                        Button(onClick = {
+                            isAccessibilityEnabled = PermissionUtils.isAccessibilityServiceEnabled(context, FocusAccessibilityService::class.java)
+                        }) {
+                            Text("Refresh Status")
+                        }
                     }
                 }
             }
-        }
 
-        Button(onClick = onNavigateToManageSchedules, modifier = Modifier.padding(top = 16.dp)) {
-            Text("Manage Schedules")
+            Button(onClick = onNavigateToManageSchedules, modifier = Modifier.padding(top = 16.dp)) {
+                Text("Manage Schedules")
+            }
         }
     }
 }

@@ -35,7 +35,10 @@ fun ScheduleEditScreen(
 
     CatalogScaffold(
         topBar = {
-            CatalogTopAppBar(title = { CatalogText(if (schedule == null) "New Schedule" else "Edit Schedule") })
+            CatalogBrandedTopAppBar(
+                title = { CatalogText(if (schedule == null) "New Schedule" else "Edit Schedule") },
+                logo = { CatalogAppLogo() }
+            )
         }
     ) { padding ->
         val modifier = Modifier
