@@ -47,4 +47,12 @@ class BlockerPreferences(context: Context) {
         schedules.forEach { array.put(it.toJson()) }
         prefs.edit().putString("schedules", array.toString()).apply()
     }
+
+    fun hasMigratedToRoom(): Boolean {
+        return prefs.getBoolean("migrated_to_room", false)
+    }
+
+    fun setMigratedToRoom(migrated: Boolean) {
+        prefs.edit().putBoolean("migrated_to_room", migrated).apply()
+    }
 }

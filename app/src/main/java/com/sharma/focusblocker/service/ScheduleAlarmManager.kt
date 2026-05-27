@@ -4,48 +4,52 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import com.sharma.focusblocker.data.BlockerPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 object ScheduleAlarmManager {
     fun updateAlarms(context: Context) {
-        val prefs = BlockerPreferences(context)
-        val schedules = prefs.getSchedules()
-        
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent("com.sharma.focusblocker.ACTION_CHECK_SCHEDULE")
-        intent.setPackage(context.packageName)
-        
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, 
-            0, 
-            intent, 
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        
-        val nextTime = getNextStateChangeTime(schedules)
-        if (nextTime != null) {
-            try {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                    if (alarmManager.canScheduleExactAlarms()) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = com.sharma.focusblocker.data.AppDatabase.getDatabase(context)
+            val schedules = db.scheduleDao().getAllSchedules()
+            
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val intent = Intent("com.sharma.focusblocker.ACTION_CHECK_SCHEDULE")
+            intent.setPackage(context.packageName)
+            
+            val pendingIntent = PendingIntent.getBroadcast(
+                context, 
+                0, 
+                intent, 
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            
+            val nextTime = getNextStateChangeTime(schedules)
+            if (nextTime != null) {
+                try {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        if (alarmManager.canScheduleExactAlarms()) {
+                            alarmManager.setExactAndAllowWhileIdle(
+                                AlarmManager.RTC_WAKEUP,
+                                nextTime,
+                                pendingIntent
+                            )
+                        }
+                    } else {
                         alarmManager.setExactAndAllowWhileIdle(
                             AlarmManager.RTC_WAKEUP,
                             nextTime,
                             pendingIntent
                         )
                     }
-                } else {
-                    alarmManager.setExactAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        nextTime,
-                        pendingIntent
-                    )
+                } catch (e: SecurityException) {
+                    // Ignore if permission isn't granted
                 }
-            } catch (e: SecurityException) {
-                // Ignore if permission isn't granted
+            } else {
+                alarmManager.cancel(pendingIntent)
             }
-        } else {
-            alarmManager.cancel(pendingIntent)
         }
     }
     
