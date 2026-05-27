@@ -36,8 +36,7 @@ fun ScheduleEditScreen(
     CatalogScaffold(
         topBar = {
             CatalogBrandedTopAppBar(
-                title = { CatalogText(if (schedule == null) "New Schedule" else "Edit Schedule") },
-                logo = { CatalogAppLogo() }
+                title = { CatalogText(if (schedule == null) "New Schedule" else "Edit Schedule") }
             )
         }
     ) { padding ->

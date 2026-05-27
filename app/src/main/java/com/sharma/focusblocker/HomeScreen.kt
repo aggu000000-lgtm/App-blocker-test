@@ -20,12 +20,14 @@ import com.example.designsystem.components.CatalogBrandedTopAppBar
 import com.example.designsystem.components.CatalogScaffold
 import com.example.designsystem.components.CatalogAppLogo
 import com.example.designsystem.components.CatalogText
+import com.example.designsystem.theme.LocalAppIdentity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onNavigateToManageSchedules: () -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val appIdentity = LocalAppIdentity.current
     
     var isAccessibilityEnabled by remember { 
         mutableStateOf(PermissionUtils.isAccessibilityServiceEnabled(context, FocusAccessibilityService::class.java)) 
@@ -59,7 +61,7 @@ fun HomeScreen(onNavigateToManageSchedules: () -> Unit) {
             title = { Text("Accessibility Permission Required") },
             text = {
                 Text(
-                    "Focus Blocker needs Accessibility Service permission to function.\n\n" +
+                    "${appIdentity.appName} needs Accessibility Service permission to function.\n\n" +
                     "Purpose: This app uses the Accessibility API to monitor the apps you open and block them if they are on your restricted list during a focus session.\n\n" +
                     "Data Privacy: No personal or sensitive data is collected, stored, or transmitted by this service."
                 )
@@ -88,10 +90,7 @@ fun HomeScreen(onNavigateToManageSchedules: () -> Unit) {
 
     CatalogScaffold(
         topBar = {
-            CatalogBrandedTopAppBar(
-                title = { CatalogText("Focus Blocker Foundation") },
-                logo = { CatalogAppLogo() }
-            )
+            CatalogBrandedTopAppBar()
         }
     ) { innerPadding ->
         Column(

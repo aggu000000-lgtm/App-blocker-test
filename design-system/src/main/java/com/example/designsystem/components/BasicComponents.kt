@@ -13,26 +13,23 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 
-import androidx.compose.ui.res.painterResource
-import com.example.uiassets.R as UiAssetsR
+import com.example.designsystem.theme.LocalAppIdentity
 
 @Composable
 fun CatalogAppLogo(modifier: Modifier = Modifier) {
     androidx.compose.foundation.Image(
-        painter = painterResource(id = UiAssetsR.drawable.ic_app_logo),
+        painter = LocalAppIdentity.current.appLogo(),
         contentDescription = "App Logo",
         modifier = modifier.size(32.dp)
     )
@@ -82,9 +79,9 @@ fun CatalogCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatalogBrandedTopAppBar(
-    title: @Composable () -> Unit,
+    title: @Composable () -> Unit = { CatalogText(LocalAppIdentity.current.appName) },
     modifier: Modifier = Modifier,
-    logo: @Composable (() -> Unit)? = null,
+    logo: @Composable (() -> Unit)? = { CatalogAppLogo() },
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -107,7 +104,7 @@ fun CatalogBrandedTopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatalogTopAppBar(
-    title: @Composable () -> Unit,
+    title: @Composable () -> Unit = { CatalogText(LocalAppIdentity.current.appName) },
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}

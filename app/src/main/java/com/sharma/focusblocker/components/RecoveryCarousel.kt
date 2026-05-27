@@ -14,10 +14,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.designsystem.components.CatalogCarousel
+import com.example.designsystem.theme.LocalAppIdentity
 
 @Composable
 fun RecoveryCarousel(onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val appIdentity = LocalAppIdentity.current
     
     Column(
         modifier = Modifier
@@ -32,7 +34,7 @@ fun RecoveryCarousel(onDismiss: () -> Unit) {
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(
-            text = "To enable Focus Blocker, follow these steps to allow restricted settings:",
+            text = "To enable ${appIdentity.appName}, follow these steps to allow restricted settings:",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -46,7 +48,7 @@ fun RecoveryCarousel(onDismiss: () -> Unit) {
             CarouselStep(
                 stepNumber = 1,
                 title = "Open App Info",
-                description = "Tap the button below to open the App Info screen for Focus Blocker.",
+                description = "Tap the button below to open the App Info screen for ${appIdentity.appName}.",
                 actionText = "Open App Info",
                 onAction = {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {

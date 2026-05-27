@@ -9,11 +9,18 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowCompat
+import com.example.designsystem.theme.AppIdentity
+import com.example.designsystem.theme.LocalAppIdentity
+import com.example.uiassets.R as UiAssetsR
+import com.sharma.focusblocker.R as AppR
 
 private val DarkColorScheme = darkColorScheme()
 private val LightColorScheme = lightColorScheme()
@@ -41,8 +48,15 @@ fun FocusBlockerTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
+    val appIdentity = AppIdentity(
+        appName = stringResource(AppR.string.app_name),
+        appLogo = { painterResource(id = UiAssetsR.drawable.ic_app_logo) }
     )
+
+    CompositionLocalProvider(LocalAppIdentity provides appIdentity) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content
+        )
+    }
 }
