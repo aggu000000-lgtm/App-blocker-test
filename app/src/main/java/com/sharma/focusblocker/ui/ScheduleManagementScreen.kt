@@ -18,7 +18,10 @@ fun ScheduleManagementScreen(
 
     CatalogScaffold(
         topBar = {
-            CatalogTopAppBar(title = { CatalogText("Schedules") })
+            CatalogBrandedTopAppBar(
+                title = { CatalogText("Schedules") },
+                logo = { CatalogAppLogo() }
+            )
         },
         floatingActionButton = {
             CatalogFloatingAppBar {
