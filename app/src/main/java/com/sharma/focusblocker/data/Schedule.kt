@@ -1,11 +1,14 @@
 package com.sharma.focusblocker.data
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 
+@Entity(tableName = "schedules")
 data class Schedule(
-    val id: String = UUID.randomUUID().toString(),
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val name: String,
     val isEnabled: Boolean = true,
     val startHour: Int,

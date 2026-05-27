@@ -1,57 +1,56 @@
 package com.sharma.focusblocker.ui
 
-import android.content.Context
+import android.app.Application
 import androidx.lifecycle.ViewModel
-import com.sharma.focusblocker.data.BlockerPreferences
+import androidx.lifecycle.viewModelScope
 import com.sharma.focusblocker.data.Schedule
+import com.sharma.focusblocker.data.ScheduleRepository
 import com.sharma.focusblocker.service.ScheduleAlarmManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
-    private val application: android.app.Application
+    private val application: Application,
+    private val repository: ScheduleRepository
 ) : ViewModel() {
-    private val prefs = BlockerPreferences(application)
-    
-    private val _schedules = MutableStateFlow<List<Schedule>>(emptyList())
-    val schedules: StateFlow<List<Schedule>> = _schedules
-    
+
+    val schedules: StateFlow<List<Schedule>> = repository.schedulesFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     init {
-        _schedules.value = prefs.getSchedules()
+        viewModelScope.launch {
+            repository.migrateFromPreferencesIfNeeded()
+        }
     }
-    
+
     fun toggleSchedule(schedule: Schedule, isEnabled: Boolean) {
         val updated = schedule.copy(isEnabled = isEnabled)
-        updateSchedule(updated)
-    }
-    
-    fun deleteSchedule(schedule: Schedule) {
-        val newList = _schedules.value.filter { it.id != schedule.id }
-        saveList(newList)
-    }
-    
-    fun saveSchedule(schedule: Schedule) {
-        val current = _schedules.value.toMutableList()
-        val index = current.indexOfFirst { it.id == schedule.id }
-        if (index != -1) {
-            current[index] = schedule
-        } else {
-            current.add(schedule)
+        viewModelScope.launch {
+            repository.updateSchedule(updated)
+            ScheduleAlarmManager.updateAlarms(application)
         }
-        saveList(current)
     }
-    
-    private fun updateSchedule(schedule: Schedule) {
-        saveSchedule(schedule)
+
+    fun deleteSchedule(schedule: Schedule) {
+        viewModelScope.launch {
+            repository.deleteSchedule(schedule)
+            ScheduleAlarmManager.updateAlarms(application)
+        }
     }
-    
-    private fun saveList(list: List<Schedule>) {
-        _schedules.value = list
-        prefs.saveSchedules(list)
-        ScheduleAlarmManager.updateAlarms(application)
+
+    fun saveSchedule(schedule: Schedule) {
+        viewModelScope.launch {
+            repository.insertSchedule(schedule)
+            ScheduleAlarmManager.updateAlarms(application)
+        }
     }
 }
