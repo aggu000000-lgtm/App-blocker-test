@@ -20,7 +20,8 @@ data class CatalogScheduleItem(
     val name: String,
     val timeInfo: String,
     val daysInfo: String,
-    val isEnabled: Boolean
+    val isEnabled: Boolean,
+    val transitionTag: String? = null
 )
 
 @Composable
@@ -36,6 +37,7 @@ fun CatalogScheduleList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp, horizontal = 16.dp)
+                    .let { if (item.transitionTag != null) it.cinematicSharedElement(item.transitionTag) else it }
             ) {
                 Row(modifier = Modifier.padding(16.dp)) {
                     Column(modifier = Modifier.weight(1f)) {
