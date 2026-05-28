@@ -2,6 +2,26 @@
 
 A production-ready Android app built with Kotlin, Jetpack Compose, and Material 3.
 
+## CI/CD — Zero-Touch APK Builds
+
+**No local setup required.** Every push to `main` (or any PR) automatically builds and uploads the APK.
+
+### How to get the APK
+
+| Trigger | Where to find APK |
+|---------|-------------------|
+| **Push to `main`** | Go to **Releases → [Latest](https://github.com/aggu000000-lgtm/App-blocker-test/releases/tag/latest)** |
+| **Any PR or push** | Go to **Actions** → click the run → scroll to **Artifacts** → download `app-release-apk` |
+| **Push a tag `v*.*.*`** | Go to **Releases** → find the new version → download APK |
+
+### Quick start for developers
+
+1. Clone the repo
+2. Open in Android Studio (Hedgehog or newer)
+3. Sync Gradle and run
+
+No manual signing setup needed — the CI uses the debug keystore for automated builds. For Play Store publishing, add your own `release` signing config in `app/build.gradle.kts`.
+
 ## Architecture
 
 - **Language:** Kotlin 2.0
@@ -10,14 +30,6 @@ A production-ready Android app built with Kotlin, Jetpack Compose, and Material 
 - **Minimum SDK:** 26 (Android 8.0)
 - **Target SDK:** 34 (Android 14)
 - **Build System:** Gradle with Kotlin DSL
-
-## Features
-
-- **Home:** Overview dashboard
-- **Blocker:** Manage app blocking rules with toggles
-- **Settings:** Configure strict mode, notifications, and security options
-- **Dynamic Color:** Material You theming on Android 12+
-- **Edge-to-Edge:** Full-screen immersive UI
 
 ## Project Structure
 
@@ -38,14 +50,10 @@ app/
 └── build.gradle.kts
 ```
 
-## Getting Started
-
-1. Open in Android Studio Hedgehog or later
-2. Sync Gradle
-3. Run on emulator or device
-
-## Build
+## Build locally
 
 ```bash
 ./gradlew assembleRelease
 ```
+
+APK will be at `app/build/outputs/apk/release/`.

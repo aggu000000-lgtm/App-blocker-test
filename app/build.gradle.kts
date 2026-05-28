@@ -18,6 +18,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        getByName("debug") {
+            // Use standard debug keystore
+        }
+        create("release") {
+            // CI-friendly: use debug keystore so release APK builds without secrets
+            // In production, replace with real keystore via environment variables
+            storeFile = signingConfigs.getByName("debug").storeFile
+            storePassword = signingConfigs.getByName("debug").storePassword
+            keyAlias = signingConfigs.getByName("debug").keyAlias
+            keyPassword = signingConfigs.getByName("debug").keyPassword
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -26,7 +40,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false
