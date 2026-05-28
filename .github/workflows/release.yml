@@ -5,6 +5,15 @@ on:
     tags:
       - 'v*.*.*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag for the release (e.g. v1.0.0). Leave blank to auto-generate v0.0.0-<runNumber>-<shortSha>."
+        required: false
+        default: ""
+      prerelease:
+        description: "Mark as pre-release?"
+        required: false
+        default: "true"
 
 permissions:
   contents: write   # needed by softprops/action-gh-release
@@ -32,9 +41,32 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
+      # Decide what tag to use.
+      # - tag push           -> github.ref_name is already the tag (v1.2.3)
+      # - workflow_dispatch  -> use user-provided input, else auto v0.0.0-<run>-<sha>
+      - name: Resolve release tag
+        id: tagger
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            INPUT_TAG="${{ github.event.inputs.tag }}"
+            if [ -n "$INPUT_TAG" ]; then
+              TAG="$INPUT_TAG"
+            else
+              SHORT_SHA="${GITHUB_SHA:0:7}"
+              TAG="v0.0.0-${{ github.run_number }}-${SHORT_SHA}"
+            fi
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved release tag: $TAG"
+
       - name: Upload APK to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.tagger.outputs.tag }}
+          name: ${{ steps.tagger.outputs.tag }}
           files: app/build/outputs/apk/release/*.apk
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
+          prerelease: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.prerelease == 'true' }}
