@@ -6,6 +6,9 @@ on:
       - 'v*.*.*'
   workflow_dispatch:
 
+permissions:
+  contents: write   # needed by softprops/action-gh-release
+
 jobs:
   release:
     name: Build & Release APK
