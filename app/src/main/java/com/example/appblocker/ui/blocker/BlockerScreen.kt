@@ -19,13 +19,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.example.appblocker.ui.components.ItemTextColumn
+import com.example.appblocker.ui.components.ScreenHeader
+import com.example.appblocker.ui.theme.spacing
 import java.util.UUID
 
 data class BlockRule(
@@ -74,15 +75,12 @@ fun BlockerScreen(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = MaterialTheme.spacing.screenHorizontal)
         ) {
-            Text(
-                text = "Blocking Rules",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+            ScreenHeader(title = "Blocking Rules")
+            
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.itemGap)
             ) {
                 items(rules, key = { it.id }) { rule ->
                     BlockRuleCard(
@@ -95,7 +93,7 @@ fun BlockerScreen(modifier: Modifier = Modifier) {
                         }
                     )
                 }
-                item { Spacer(modifier = Modifier.height(80.dp)) }
+                item { Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraExtraLarge)) }
             }
         }
     }
@@ -119,29 +117,25 @@ private fun BlockRuleCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(MaterialTheme.spacing.itemHorizontal),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = rule.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = if (rule.isActive)
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = rule.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (rule.isActive)
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            ItemTextColumn(
+                title = rule.name,
+                description = rule.description,
+                titleStyle = MaterialTheme.typography.titleLarge,
+                descriptionStyle = MaterialTheme.typography.bodyMedium,
+                titleColor = if (rule.isActive)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant,
+                descriptionColor = if (rule.isActive)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
             Switch(
                 checked = rule.isActive,
                 onCheckedChange = onToggle
