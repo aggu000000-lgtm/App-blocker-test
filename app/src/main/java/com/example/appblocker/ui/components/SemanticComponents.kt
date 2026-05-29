@@ -37,14 +37,8 @@ fun SectionGroup(
                 bottom = MaterialTheme.spacing.small
             )
         )
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Column(modifier = Modifier.padding(vertical = MaterialTheme.spacing.small)) {
-                content()
-            }
+        Column(modifier = Modifier.padding(vertical = MaterialTheme.spacing.small)) {
+            content()
         }
     }
 }

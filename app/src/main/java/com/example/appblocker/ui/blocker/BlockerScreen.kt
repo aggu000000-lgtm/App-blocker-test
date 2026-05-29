@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -108,47 +106,36 @@ private fun BlockRuleCard(
     modifier: Modifier = Modifier
 ) {
     val interactionSource = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-    Card(
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .springPress(interactionSource)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null
-            ) { onToggle(!rule.isActive) },
-        colors = CardDefaults.cardColors(
-            containerColor = if (rule.isActive)
-                MaterialTheme.colorScheme.primaryContainer
-            else
-                MaterialTheme.colorScheme.surfaceVariant
-        )
+            ) { onToggle(!rule.isActive) }
+            .padding(MaterialTheme.spacing.itemHorizontal),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(MaterialTheme.spacing.itemHorizontal),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            ItemTextColumn(
-                title = rule.name,
-                description = rule.description,
-                titleStyle = MaterialTheme.typography.titleLarge,
-                descriptionStyle = MaterialTheme.typography.bodyMedium,
-                titleColor = if (rule.isActive)
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant,
-                descriptionColor = if (rule.isActive)
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f)
-            )
-            Switch(
-                checked = rule.isActive,
-                onCheckedChange = onToggle
-            )
-        }
+        ItemTextColumn(
+            title = rule.name,
+            description = rule.description,
+            titleStyle = MaterialTheme.typography.titleLarge,
+            descriptionStyle = MaterialTheme.typography.bodyMedium,
+            titleColor = if (rule.isActive)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.onSurfaceVariant,
+            descriptionColor = if (rule.isActive)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(
+            checked = rule.isActive,
+            onCheckedChange = onToggle
+        )
     }
 }
