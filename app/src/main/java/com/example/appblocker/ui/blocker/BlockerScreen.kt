@@ -17,7 +17,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
+import com.example.appblocker.ui.components.TactileSwitch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.appblocker.ui.components.ItemTextColumn
 import com.example.appblocker.ui.components.ScreenHeader
-import com.example.appblocker.ui.foundation.springPress
 import com.example.appblocker.ui.theme.spacing
 import com.example.appblocker.ui.theme.motion
 import java.util.UUID
@@ -111,15 +110,10 @@ private fun BlockRuleCard(
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val interactionSource = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .springPress(interactionSource)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) { onToggle(!rule.isActive) }
+            .clickable { onToggle(!rule.isActive) }
             .padding(MaterialTheme.spacing.itemHorizontal),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -139,7 +133,7 @@ private fun BlockRuleCard(
                 MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
         )
-        Switch(
+        TactileSwitch(
             checked = rule.isActive,
             onCheckedChange = onToggle
         )

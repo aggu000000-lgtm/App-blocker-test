@@ -13,7 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
+import com.example.appblocker.ui.components.TactileSwitch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -87,7 +87,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         description = "Prevent uninstalling or disabling the blocker",
                         onClick = { strictMode.value = !strictMode.value },
                         action = {
-                            Switch(checked = strictMode.value, onCheckedChange = { strictMode.value = it })
+                            TactileSwitch(checked = strictMode.value, onCheckedChange = { strictMode.value = it })
                         }
                     )
                     SettingItem(
@@ -95,7 +95,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         description = "Alerts when apps are blocked or sessions end",
                         onClick = { notifications.value = !notifications.value },
                         action = {
-                            Switch(checked = notifications.value, onCheckedChange = { notifications.value = it })
+                            TactileSwitch(checked = notifications.value, onCheckedChange = { notifications.value = it })
                         }
                     )
                 }
@@ -116,7 +116,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         description = "Require fingerprint to change settings",
                         onClick = { biometric.value = !biometric.value },
                         action = {
-                            Switch(checked = biometric.value, onCheckedChange = { biometric.value = it })
+                            TactileSwitch(checked = biometric.value, onCheckedChange = { biometric.value = it })
                         }
                     )
                     SettingItem(
