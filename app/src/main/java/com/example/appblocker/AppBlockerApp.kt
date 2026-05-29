@@ -41,6 +41,7 @@ val topLevelRoutes = listOf(
 @Composable
 fun AppBlockerApp() {
     val navController = rememberNavController()
+    val motion = com.example.appblocker.ui.theme.LocalMotion.current
 
     Scaffold(
         bottomBar = {
@@ -72,7 +73,23 @@ fun AppBlockerApp() {
         NavHost(
             navController = navController,
             startDestination = RouteHome,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                androidx.compose.animation.fadeIn(animationSpec = motion.navigationSpring) +
+                androidx.compose.animation.slideInVertically(
+                    initialOffsetY = { 50 },
+                    animationSpec = motion.navigationSpringIntOffset
+                )
+            },
+            exitTransition = {
+                androidx.compose.animation.fadeOut(animationSpec = motion.navigationSpring)
+            },
+            popEnterTransition = {
+                androidx.compose.animation.fadeIn(animationSpec = motion.navigationSpring)
+            },
+            popExitTransition = {
+                androidx.compose.animation.fadeOut(animationSpec = motion.navigationSpring)
+            }
         ) {
             composable<RouteHome> { HomeScreen() }
             composable<RouteBlocker> { BlockerScreen() }

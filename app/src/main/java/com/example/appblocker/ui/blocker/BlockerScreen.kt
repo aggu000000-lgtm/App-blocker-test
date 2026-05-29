@@ -1,5 +1,6 @@
 package com.example.appblocker.ui.blocker
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.appblocker.ui.components.ItemTextColumn
 import com.example.appblocker.ui.components.ScreenHeader
+import com.example.appblocker.ui.foundation.springPress
 import com.example.appblocker.ui.theme.spacing
 import java.util.UUID
 
@@ -105,8 +107,15 @@ private fun BlockRuleCard(
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val interactionSource = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .springPress(interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) { onToggle(!rule.isActive) },
         colors = CardDefaults.cardColors(
             containerColor = if (rule.isActive)
                 MaterialTheme.colorScheme.primaryContainer
