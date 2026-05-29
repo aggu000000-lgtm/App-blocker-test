@@ -40,6 +40,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             SettingItem(
                 title = "Strict Mode",
                 description = "Prevent uninstalling or disabling the blocker",
+                onClick = { strictMode.value = !strictMode.value },
                 action = {
                     Switch(checked = strictMode.value, onCheckedChange = { strictMode.value = it })
                 }
@@ -47,6 +48,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             SettingItem(
                 title = "Notifications",
                 description = "Alerts when apps are blocked or sessions end",
+                onClick = { notifications.value = !notifications.value },
                 action = {
                     Switch(checked = notifications.value, onCheckedChange = { notifications.value = it })
                 }
@@ -59,6 +61,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             SettingItem(
                 title = "Biometric Lock",
                 description = "Require fingerprint to change settings",
+                onClick = { biometric.value = !biometric.value },
                 action = {
                     Switch(checked = biometric.value, onCheckedChange = { biometric.value = it })
                 }
@@ -66,6 +69,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             SettingItem(
                 title = "Accessibility Service",
                 description = "Required for app blocking",
+                onClick = {},
                 action = {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -77,6 +81,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             SettingItem(
                 title = "Device Admin",
                 description = "Required for strict mode",
+                onClick = {},
                 action = {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -92,6 +97,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SectionGroup(title = "About") {
             SettingItem(
                 title = "Version",
+                onClick = {},
                 action = {
                     Text(
                         text = "1.0.0",
@@ -102,6 +108,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             )
             SettingItem(
                 title = "Build",
+                onClick = {},
                 action = {
                     Text(
                         text = "100000",

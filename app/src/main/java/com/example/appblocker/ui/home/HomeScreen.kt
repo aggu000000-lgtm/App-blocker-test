@@ -1,9 +1,6 @@
 package com.example.appblocker.ui.home
 
-import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -104,11 +101,12 @@ private fun HeroFocusNumber(targetMinutes: Int) {
     var trigger by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) { trigger = targetMinutes }
 
+    val motion = com.example.appblocker.ui.theme.LocalMotion.current
     val count by animateIntAsState(
         targetValue = trigger,
-        animationSpec = tween(
-            durationMillis = 1200,
-            easing = LinearOutSlowInEasing as Easing
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessVeryLow
         ),
         label = "heroCount"
     )

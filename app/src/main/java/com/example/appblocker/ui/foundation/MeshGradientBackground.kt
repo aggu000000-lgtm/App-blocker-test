@@ -33,6 +33,11 @@ import kotlin.math.sin
  */
 fun Modifier.meshGradientBackground(base: Color): Modifier = composed {
     val transition = rememberInfiniteTransition(label = "mesh")
+    // JUSTIFICATION PROTOCOL:
+    // Infinite loop animations require duration-based tweening because Compose's physics-based
+    // animations (springs) inherently aim to reach a target state and settle. A continuous, 
+    // uninterrupted drift without a defined end state requires a repeating fixed duration.
+    // The long 16s duration ensures the "living" aesthetic remains subtle and organic.
     val t by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,

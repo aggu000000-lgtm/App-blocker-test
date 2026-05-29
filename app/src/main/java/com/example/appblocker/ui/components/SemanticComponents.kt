@@ -1,10 +1,12 @@
 package com.example.appblocker.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.appblocker.ui.foundation.springPress
 import com.example.appblocker.ui.theme.spacing
 
 @Composable
@@ -84,15 +86,30 @@ fun SettingItem(
     description: String? = null,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues? = null,
+    onClick: (() -> Unit)? = null,
     action: (@Composable () -> Unit)? = null
 ) {
     val padding = contentPadding ?: PaddingValues(
         horizontal = MaterialTheme.spacing.itemHorizontal,
         vertical = MaterialTheme.spacing.itemVertical
     )
+    val interactionSource = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val clickableModifier = if (onClick != null) {
+        Modifier
+            .springPress(interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+    } else {
+        Modifier
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .then(clickableModifier)
             .padding(padding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
