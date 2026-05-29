@@ -115,10 +115,6 @@ private fun HeroFocusNumber(targetMinutes: Int) {
         Text(
             text = count.toString(),
             style = MaterialTheme.typography.displayLarge,
-            fontWeight = FontWeight.Bold,
-            fontSize = 120.sp,
-            lineHeight = 112.sp,
-            letterSpacing = (-4).sp,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(Modifier.height(4.dp))
