@@ -18,6 +18,8 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.material3.MaterialTheme
+import com.example.appblocker.ui.theme.motion
 
 /**
  * Spring-physics press feedback per DESIGN_NORTH_STAR.md Law 1.
@@ -35,14 +37,7 @@ fun Modifier.springPress(
     val isPressed by interactionSource.collectIsPressedAsStateCompat()
     val scale by animateFloatAsState(
         targetValue = if (isPressed) pressedScale else 1f,
-        animationSpec = if (isPressed) {
-            spring(stiffness = Spring.StiffnessMedium)
-        } else {
-            spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMedium
-            )
-        },
+        animationSpec = MaterialTheme.motion.interactiveSpring,
         label = "springPress"
     )
     this.scale(scale)

@@ -27,6 +27,7 @@ import com.example.appblocker.ui.components.ItemTextColumn
 import com.example.appblocker.ui.components.ScreenHeader
 import com.example.appblocker.ui.foundation.springPress
 import com.example.appblocker.ui.theme.spacing
+import com.example.appblocker.ui.theme.motion
 import java.util.UUID
 
 data class BlockRule(
@@ -90,7 +91,12 @@ fun BlockerScreen(modifier: Modifier = Modifier) {
                             if (index != -1) {
                                 rules[index] = rule.copy(isActive = active)
                             }
-                        }
+                        },
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = MaterialTheme.motion.interactiveSpring,
+                            placementSpec = MaterialTheme.motion.interactiveSpringIntOffset,
+                            fadeOutSpec = MaterialTheme.motion.interactiveSpring
+                        )
                     )
                 }
                 item { Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraExtraLarge)) }

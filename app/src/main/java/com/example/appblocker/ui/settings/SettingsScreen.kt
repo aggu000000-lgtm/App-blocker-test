@@ -1,12 +1,14 @@
 package com.example.appblocker.ui.settings
 
-import androidx.compose.foundation.layout.Column
+import android.provider.Settings
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Icon
@@ -14,13 +16,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.delay
 import com.example.appblocker.ui.components.ScreenHeader
 import com.example.appblocker.ui.components.SectionGroup
 import com.example.appblocker.ui.components.SettingItem
 import com.example.appblocker.ui.theme.spacing
+import com.example.appblocker.ui.theme.motion
 
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier) {
@@ -28,97 +34,158 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val notifications = remember { mutableStateOf(true) }
     val biometric = remember { mutableStateOf(false) }
 
-    Column(
+    val context = LocalContext.current
+    val reduceMotion = remember(context) {
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
+
+    val visibleIndex = remember { mutableStateOf(-1) }
+    LaunchedEffect(Unit) {
+        if (reduceMotion) {
+            visibleIndex.value = 100
+        } else {
+            for (i in 0..4) {
+                delay(50)
+                visibleIndex.value = i
+            }
+        }
+    }
+
+    @Composable
+    fun StaggeredItem(index: Int, content: @Composable () -> Unit) {
+        AnimatedVisibility(
+            visible = visibleIndex.value >= index,
+            enter = if (reduceMotion) {
+                fadeIn(animationSpec = MaterialTheme.motion.interactiveSpring)
+            } else {
+                slideInVertically(
+                    initialOffsetY = { it / 2 },
+                    animationSpec = MaterialTheme.motion.interactiveSpringIntOffset
+                ) + fadeIn(animationSpec = MaterialTheme.motion.interactiveSpring)
+            }
+        ) {
+            content()
+        }
+    }
+
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = MaterialTheme.spacing.screenHorizontal)
     ) {
-        ScreenHeader(title = "Settings")
-
-        SectionGroup(title = "General") {
-            SettingItem(
-                title = "Strict Mode",
-                description = "Prevent uninstalling or disabling the blocker",
-                onClick = { strictMode.value = !strictMode.value },
-                action = {
-                    Switch(checked = strictMode.value, onCheckedChange = { strictMode.value = it })
-                }
-            )
-            SettingItem(
-                title = "Notifications",
-                description = "Alerts when apps are blocked or sessions end",
-                onClick = { notifications.value = !notifications.value },
-                action = {
-                    Switch(checked = notifications.value, onCheckedChange = { notifications.value = it })
-                }
-            )
+        item {
+            StaggeredItem(index = 0) {
+                ScreenHeader(title = "Settings")
+            }
         }
 
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
-
-        SectionGroup(title = "Security") {
-            SettingItem(
-                title = "Biometric Lock",
-                description = "Require fingerprint to change settings",
-                onClick = { biometric.value = !biometric.value },
-                action = {
-                    Switch(checked = biometric.value, onCheckedChange = { biometric.value = it })
-                }
-            )
-            SettingItem(
-                title = "Accessibility Service",
-                description = "Required for app blocking",
-                onClick = {},
-                action = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+        item {
+            StaggeredItem(index = 1) {
+                SectionGroup(title = "General") {
+                    SettingItem(
+                        title = "Strict Mode",
+                        description = "Prevent uninstalling or disabling the blocker",
+                        onClick = { strictMode.value = !strictMode.value },
+                        action = {
+                            Switch(checked = strictMode.value, onCheckedChange = { strictMode.value = it })
+                        }
+                    )
+                    SettingItem(
+                        title = "Notifications",
+                        description = "Alerts when apps are blocked or sessions end",
+                        onClick = { notifications.value = !notifications.value },
+                        action = {
+                            Switch(checked = notifications.value, onCheckedChange = { notifications.value = it })
+                        }
                     )
                 }
-            )
-            SettingItem(
-                title = "Device Admin",
-                description = "Required for strict mode",
-                onClick = {},
-                action = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            )
+            }
         }
 
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
-
-        SectionGroup(title = "About") {
-            SettingItem(
-                title = "Version",
-                onClick = {},
-                action = {
-                    Text(
-                        text = "1.0.0",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            )
-            SettingItem(
-                title = "Build",
-                onClick = {},
-                action = {
-                    Text(
-                        text = "100000",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            )
+        item {
+            StaggeredItem(index = 1) {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+            }
         }
 
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraLarge))
+        item {
+            StaggeredItem(index = 2) {
+                SectionGroup(title = "Security") {
+                    SettingItem(
+                        title = "Biometric Lock",
+                        description = "Require fingerprint to change settings",
+                        onClick = { biometric.value = !biometric.value },
+                        action = {
+                            Switch(checked = biometric.value, onCheckedChange = { biometric.value = it })
+                        }
+                    )
+                    SettingItem(
+                        title = "Accessibility Service",
+                        description = "Required for app blocking",
+                        onClick = {},
+                        action = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                    SettingItem(
+                        title = "Device Admin",
+                        description = "Required for strict mode",
+                        onClick = {},
+                        action = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        item {
+            StaggeredItem(index = 2) {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.medium))
+            }
+        }
+
+        item {
+            StaggeredItem(index = 3) {
+                SectionGroup(title = "About") {
+                    SettingItem(
+                        title = "Version",
+                        onClick = {},
+                        action = {
+                            Text(
+                                text = "1.0.0",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                    SettingItem(
+                        title = "Build",
+                        onClick = {},
+                        action = {
+                            Text(
+                                text = "100000",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        item {
+            StaggeredItem(index = 3) {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.extraLarge))
+            }
+        }
     }
 }
