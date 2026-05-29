@@ -1,6 +1,8 @@
 package com.example.appblocker.ui.blocker
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,15 +19,17 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
+import com.example.appblocker.ui.components.OrganicToggle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.appblocker.ui.components.ItemTextColumn
 import com.example.appblocker.ui.components.ScreenHeader
-import com.example.appblocker.ui.foundation.springPress
 import com.example.appblocker.ui.theme.spacing
 import com.example.appblocker.ui.theme.motion
 import java.util.UUID
@@ -84,7 +88,7 @@ fun BlockerScreen(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.itemGap)
             ) {
                 items(rules, key = { it.id }) { rule ->
-                    BlockRuleCard(
+                    BlockRuleRow(
                         rule = rule,
                         onToggle = { active ->
                             val index = rules.indexOfFirst { it.id == rule.id }
@@ -105,22 +109,43 @@ fun BlockerScreen(modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun BlockRuleCard(
+private fun BlockRuleRow(
     rule: BlockRule,
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val interactionSource = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    var isExpanded by remember { mutableStateOf(false) }
+    val haptics = com.example.appblocker.ui.foundation.rememberHaptics()
+    val paddingScale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (isExpanded) 2f else 1f,
+        animationSpec = androidx.compose.animation.core.spring(stiffness = 300f, dampingRatio = 0.6f),
+        label = "paddingScale"
+    )
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .springPress(interactionSource)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) { onToggle(!rule.isActive) }
-            .padding(MaterialTheme.spacing.itemHorizontal),
+            .combinedClickable(
+                onClick = {
+                    val newValue = !rule.isActive
+                    if (newValue) {
+                        haptics.toggleOn()
+                    } else {
+                        haptics.toggleOff()
+                    }
+                    onToggle(newValue)
+                },
+                onLongClick = {
+                    haptics.longPress()
+                    isExpanded = !isExpanded
+                }
+            )
+            .padding(
+                horizontal = MaterialTheme.spacing.itemHorizontal,
+                vertical = MaterialTheme.spacing.itemHorizontal * paddingScale
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -139,7 +164,7 @@ private fun BlockRuleCard(
                 MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
         )
-        Switch(
+        OrganicToggle(
             checked = rule.isActive,
             onCheckedChange = onToggle
         )

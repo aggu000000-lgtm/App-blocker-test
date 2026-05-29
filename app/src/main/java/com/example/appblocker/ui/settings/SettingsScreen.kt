@@ -13,7 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
+import com.example.appblocker.ui.components.OrganicToggle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +27,7 @@ import com.example.appblocker.ui.components.SectionGroup
 import com.example.appblocker.ui.components.SettingItem
 import com.example.appblocker.ui.theme.spacing
 import com.example.appblocker.ui.theme.motion
+import com.example.appblocker.ui.foundation.rememberHaptics
 
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier) {
@@ -40,6 +41,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     }
 
     val visibleIndex = remember { mutableStateOf(-1) }
+    val haptics = rememberHaptics()
     LaunchedEffect(Unit) {
         if (reduceMotion) {
             visibleIndex.value = 100
@@ -85,17 +87,25 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     SettingItem(
                         title = "Strict Mode",
                         description = "Prevent uninstalling or disabling the blocker",
-                        onClick = { strictMode.value = !strictMode.value },
+                        onClick = {
+                            val newValue = !strictMode.value
+                            if (newValue) haptics.toggleOn() else haptics.toggleOff()
+                            strictMode.value = newValue
+                        },
                         action = {
-                            Switch(checked = strictMode.value, onCheckedChange = { strictMode.value = it })
+                            OrganicToggle(checked = strictMode.value, onCheckedChange = { strictMode.value = it })
                         }
                     )
                     SettingItem(
                         title = "Notifications",
                         description = "Alerts when apps are blocked or sessions end",
-                        onClick = { notifications.value = !notifications.value },
+                        onClick = {
+                            val newValue = !notifications.value
+                            if (newValue) haptics.toggleOn() else haptics.toggleOff()
+                            notifications.value = newValue
+                        },
                         action = {
-                            Switch(checked = notifications.value, onCheckedChange = { notifications.value = it })
+                            OrganicToggle(checked = notifications.value, onCheckedChange = { notifications.value = it })
                         }
                     )
                 }
@@ -114,9 +124,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     SettingItem(
                         title = "Biometric Lock",
                         description = "Require fingerprint to change settings",
-                        onClick = { biometric.value = !biometric.value },
+                        onClick = {
+                            val newValue = !biometric.value
+                            if (newValue) haptics.toggleOn() else haptics.toggleOff()
+                            biometric.value = newValue
+                        },
                         action = {
-                            Switch(checked = biometric.value, onCheckedChange = { biometric.value = it })
+                            OrganicToggle(checked = biometric.value, onCheckedChange = { biometric.value = it })
                         }
                     )
                     SettingItem(
