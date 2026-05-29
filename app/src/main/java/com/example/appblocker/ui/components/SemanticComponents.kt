@@ -6,7 +6,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.appblocker.ui.foundation.springPress
 import com.example.appblocker.ui.theme.spacing
 
 @Composable
@@ -87,15 +86,8 @@ fun SettingItem(
         horizontal = MaterialTheme.spacing.itemHorizontal,
         vertical = MaterialTheme.spacing.itemVertical
     )
-    val interactionSource = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val clickableModifier = if (onClick != null) {
-        Modifier
-            .springPress(interactionSource)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
+        Modifier.clickable(onClick = onClick)
     } else {
         Modifier
     }
