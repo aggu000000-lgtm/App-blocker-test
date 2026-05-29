@@ -2,7 +2,6 @@ package com.example.appblocker.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
@@ -20,7 +19,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.appblocker.ui.foundation.rememberHaptics
-import com.example.appblocker.ui.foundation.springPress
 import com.example.appblocker.ui.theme.BrandColors
 
 /**
@@ -41,18 +39,13 @@ fun PillButton(
     brush: Brush = BrandColors.accentGradient
 ) {
     val haptics = rememberHaptics()
-    val interactionSource = remember { MutableInteractionSource() }
 
     Box(
         modifier = modifier
-            .springPress(interactionSource)
             .defaultMinSize(minHeight = 56.dp)
             .clip(CircleShape)
             .background(brush)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) {
+            .clickable {
                 haptics.confirm()
                 onClick()
             }
