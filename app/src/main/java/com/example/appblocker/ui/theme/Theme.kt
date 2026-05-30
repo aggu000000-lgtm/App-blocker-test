@@ -50,14 +50,15 @@ fun AppBlockerTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) BrandDarkColors else BrandLightColors
-    val bloomResources = androidx.compose.runtime.remember(colorScheme) {
+    val motion = LocalMotion.current
+    val bloomResources = androidx.compose.runtime.remember(colorScheme, motion) {
         com.example.appblocker.ui.foundation.BloomThemeResources(
             color = BrandColors.accentHalo,
-            animationSpec = Motion().interactiveSpring
+            animationSpec = motion.interactiveSpring
         )
     }
     CompositionLocalProvider(
-        LocalMotion provides Motion(),
+        LocalMotion provides motion,
         LocalIndication provides BloomIndication,
         com.example.appblocker.ui.foundation.LocalBloomThemeResources provides bloomResources
     ) {

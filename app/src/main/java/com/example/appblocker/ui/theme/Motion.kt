@@ -13,24 +13,24 @@ data class Motion(
         stiffness = Spring.StiffnessMediumLow
     ),
     val navigationSpring: androidx.compose.animation.core.FiniteAnimationSpec<Float> = spring(
-        dampingRatio = Spring.DampingRatioNoBouncy,
-        stiffness = Spring.StiffnessMediumLow
+        dampingRatio = 0.65f,
+        stiffness = 1500f
     ),
     val navigationSpringIntOffset: androidx.compose.animation.core.FiniteAnimationSpec<IntOffset> = spring(
-        dampingRatio = Spring.DampingRatioNoBouncy,
-        stiffness = Spring.StiffnessMediumLow
+        dampingRatio = 0.65f,
+        stiffness = 1500f
     ),
     val interactiveSpring: androidx.compose.animation.core.SpringSpec<Float> = spring(
-        dampingRatio = Spring.DampingRatioMediumBouncy,
-        stiffness = Spring.StiffnessMedium
+        dampingRatio = 0.65f,
+        stiffness = 1500f
     ),
     val interactiveSpringIntOffset: androidx.compose.animation.core.SpringSpec<IntOffset> = spring(
-        dampingRatio = Spring.DampingRatioMediumBouncy,
-        stiffness = Spring.StiffnessMedium
+        dampingRatio = 0.65f,
+        stiffness = 1500f
     ),
     val interactiveSpringInt: androidx.compose.animation.core.SpringSpec<Int> = spring(
-        dampingRatio = Spring.DampingRatioMediumBouncy,
-        stiffness = Spring.StiffnessMedium
+        dampingRatio = 0.65f,
+        stiffness = 1500f
     )
 )
 
