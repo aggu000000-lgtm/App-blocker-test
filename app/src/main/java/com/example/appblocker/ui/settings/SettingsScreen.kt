@@ -78,7 +78,16 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
         item {
             StaggeredItem(index = 1) {
+                val adaptiveVisualsState = com.example.appblocker.ui.foundation.LocalAdaptiveVisuals.current
                 SectionGroup(title = "General") {
+                    SettingItem(
+                        title = "Adaptive Visuals",
+                        description = "Scale UI effects based on battery and charging",
+                        onClick = { adaptiveVisualsState.value = !adaptiveVisualsState.value },
+                        action = {
+                            TactileSwitch(checked = adaptiveVisualsState.value, onCheckedChange = { adaptiveVisualsState.value = it })
+                        }
+                    )
                     SettingItem(
                         title = "Strict Mode",
                         description = "Prevent uninstalling or disabling the blocker",

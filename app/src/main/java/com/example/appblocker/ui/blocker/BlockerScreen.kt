@@ -111,6 +111,7 @@ private fun BlockRuleCard(
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val auraBrush = com.example.appblocker.ui.theme.LocalAuraBrush.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -124,14 +125,9 @@ private fun BlockRuleCard(
             description = rule.description,
             titleStyle = MaterialTheme.typography.titleLarge,
             descriptionStyle = MaterialTheme.typography.bodyMedium,
-            titleColor = if (rule.isActive)
-                MaterialTheme.colorScheme.primary
-            else
-                MaterialTheme.colorScheme.onSurfaceVariant,
-            descriptionColor = if (rule.isActive)
-                MaterialTheme.colorScheme.primary
-            else
-                MaterialTheme.colorScheme.onSurfaceVariant,
+            titleBrush = if (rule.isActive) auraBrush else null,
+            titleColor = if (!rule.isActive) MaterialTheme.colorScheme.onSurfaceVariant else androidx.compose.ui.graphics.Color.Unspecified,
+            descriptionColor = if (rule.isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
         )
         TactileSwitch(

@@ -55,9 +55,27 @@ fun AppBlockerApp() {
     val motion = com.example.appblocker.ui.theme.LocalMotion.current
 
     var isFocusSessionActive by remember { mutableStateOf(false) }
-    val currentDynamism = if (isFocusSessionActive) DynamismLevel.Active else DynamismLevel.Ambient
+    
+    val isPowerSaveMode = com.example.appblocker.ui.foundation.rememberPowerSaveMode()
+    val batteryInfo by com.example.appblocker.ui.foundation.rememberBatteryInfo()
+    val adaptiveVisualsState = remember { mutableStateOf(true) }
 
-    CompositionLocalProvider(LocalDynamism provides currentDynamism) {
+    val currentDynamism = if (isPowerSaveMode) {
+        DynamismLevel.Ambient
+    } else if (!adaptiveVisualsState.value) {
+        DynamismLevel.Ambient
+    } else {
+        if (batteryInfo.isCharging) {
+            DynamismLevel.HighFidelity
+        } else {
+            if (isFocusSessionActive) DynamismLevel.Active else DynamismLevel.Ambient
+        }
+    }
+
+    CompositionLocalProvider(
+        LocalDynamism provides currentDynamism,
+        com.example.appblocker.ui.foundation.LocalAdaptiveVisuals provides adaptiveVisualsState
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
