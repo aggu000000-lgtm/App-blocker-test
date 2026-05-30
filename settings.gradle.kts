@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "AppBlocker"
 include(":app")
+include(":benchmark")
