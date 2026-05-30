@@ -103,10 +103,7 @@ private fun HeroFocusNumber(targetMinutes: Int) {
     val motion = com.example.appblocker.ui.theme.LocalMotion.current
     val count by animateIntAsState(
         targetValue = trigger,
-        animationSpec = androidx.compose.animation.core.spring(
-            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy,
-            stiffness = androidx.compose.animation.core.Spring.StiffnessVeryLow
-        ),
+        animationSpec = motion.interactiveSpringInt,
         label = "heroCount"
     )
 

@@ -28,10 +28,12 @@ fun TactileSwitch(
 ) {
     val haptics = rememberHaptics()
     
+    val motion = com.example.appblocker.ui.theme.LocalMotion.current
+    
     val trackColor = if (checked) BrandColors.accentStart else MaterialTheme.colorScheme.surfaceVariant
     val thumbOffset by animateFloatAsState(
         targetValue = if (checked) 24f else 0f,
-        animationSpec = spring(stiffness = 500f, dampingRatio = 0.6f),
+        animationSpec = motion.interactiveSpring,
         label = "switchThumb"
     )
 
