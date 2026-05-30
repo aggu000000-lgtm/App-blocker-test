@@ -96,7 +96,13 @@ dependencies { implementation("androidx.profileinstaller:profileinstaller:1.3.1"
 baselineProfile {
     // Defines the baseline profile plugin behavior
     saveInSrc = true
-    automaticGenerationDuringBuild = true
+    // Do NOT regenerate the baseline profile on every release build.
+    // Regeneration requires running the :benchmark instrumented tests on a
+    // connected device/emulator, which CI runners don't have. The committed
+    // baseline-prof.txt in app/src/main/ is still bundled into the APK.
+    // To refresh it locally:
+    //   ./gradlew :app:generateBaselineProfile
+    automaticGenerationDuringBuild = false
 }
 
 dependencies {
