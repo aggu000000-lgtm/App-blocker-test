@@ -34,10 +34,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val notifications = remember { mutableStateOf(true) }
     val biometric = remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
-    val reduceMotion = remember(context) {
-        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-    }
+    val reduceMotion = com.example.appblocker.ui.foundation.rememberIsReduceMotion()
 
     val visibleIndex = remember { mutableStateOf(-1) }
     LaunchedEffect(Unit) {

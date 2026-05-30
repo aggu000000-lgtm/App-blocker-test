@@ -1,10 +1,11 @@
 package com.example.appblocker.ui.foundation
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.toArgb
 import com.example.appblocker.ui.theme.BrandColors
+import com.example.appblocker.ui.theme.LocalMotion
 import kotlin.math.cos
 import kotlin.math.sin
 import android.graphics.ComposeShader
@@ -27,10 +29,26 @@ import android.graphics.Shader
 @Composable
 fun rememberMeshGradientProgress(): Float {
     val isPowerSaveMode = rememberPowerSaveMode()
+    val isReduceMotion = rememberIsReduceMotion()
     val isVisible = rememberIsVisible()
-    val shouldAnimate = isVisible && !isPowerSaveMode
+    val shouldAnimate = isVisible && !isReduceMotion
 
-    var progress by remember { mutableStateOf(0f) }
+    val dynamism = LocalDynamism.current
+    val motionTokens = LocalMotion.current
+
+    var progress by remember { mutableFloatStateOf(0f) }
+
+    val targetSpeed = if (isPowerSaveMode) {
+        1f / DynamismLevel.Ambient.durationSeconds
+    } else {
+        1f / dynamism.durationSeconds
+    }
+
+    val currentSpeed by animateFloatAsState(
+        targetValue = targetSpeed,
+        animationSpec = motionTokens.interactiveSpring,
+        label = "gradientSpeed"
+    )
 
     LaunchedEffect(shouldAnimate) {
         if (shouldAnimate) {
@@ -40,8 +58,7 @@ fun rememberMeshGradientProgress(): Float {
                 val dt = (currentTime - lastTime) / 1_000_000_000f // seconds
                 lastTime = currentTime
                 
-                // 16 seconds loop
-                progress = (progress + dt / 16f) % 1f
+                progress = (progress + dt * currentSpeed) % 1f
             }
         }
     }
