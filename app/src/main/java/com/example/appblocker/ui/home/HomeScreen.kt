@@ -44,7 +44,6 @@ fun HomeScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .meshGradientBackground(base = MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
