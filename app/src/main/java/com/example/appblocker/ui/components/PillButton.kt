@@ -36,15 +36,17 @@ fun PillButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    brush: Brush = BrandColors.accentGradient
+    brush: Brush? = null
 ) {
     val haptics = rememberHaptics()
+    val defaultBrush = com.example.appblocker.ui.theme.LocalAuraBrush.current
+    val actualBrush = brush ?: defaultBrush
 
     Box(
         modifier = modifier
             .defaultMinSize(minHeight = 56.dp)
             .clip(CircleShape)
-            .background(brush)
+            .background(actualBrush)
             .clickable {
                 haptics.confirm()
                 onClick()

@@ -30,7 +30,9 @@ fun TactileSwitch(
     
     val motion = com.example.appblocker.ui.theme.LocalMotion.current
     
-    val trackColor = if (checked) BrandColors.accentStart else MaterialTheme.colorScheme.surfaceVariant
+    val auraBrush = com.example.appblocker.ui.theme.LocalAuraBrush.current
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    
     val thumbOffset by animateFloatAsState(
         targetValue = if (checked) 24f else 0f,
         animationSpec = motion.interactiveSpring,
@@ -41,7 +43,7 @@ fun TactileSwitch(
         modifier = modifier
             .size(width = 52.dp, height = 28.dp)
             .clip(CircleShape)
-            .background(trackColor)
+            .then(if (checked) Modifier.background(auraBrush) else Modifier.background(trackColor))
             .clickable {
                 val newValue = !checked
                 if (newValue) haptics.heavyTick() else haptics.lightTick()

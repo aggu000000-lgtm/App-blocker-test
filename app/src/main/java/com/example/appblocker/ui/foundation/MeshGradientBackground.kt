@@ -46,7 +46,7 @@ fun rememberMeshGradientProgress(): Float {
 
     val currentSpeed by animateFloatAsState(
         targetValue = targetSpeed,
-        animationSpec = motionTokens.interactiveSpring,
+        animationSpec = androidx.compose.animation.core.tween(5000),
         label = "gradientSpeed"
     )
 
@@ -80,6 +80,13 @@ fun rememberMeshGradientProgress(): Float {
  */
 fun Modifier.meshGradientBackground(base: Color): Modifier = composed {
     val t = rememberMeshGradientProgress()
+    
+    val isHighFidelity = LocalDynamism.current == DynamismLevel.HighFidelity
+    val highFidelityAlpha by animateFloatAsState(
+        targetValue = if (isHighFidelity) 1f else 0f,
+        animationSpec = androidx.compose.animation.core.tween(5000),
+        label = "highFidelityAlpha"
+    )
 
     this
         .fillMaxSize()
@@ -101,6 +108,20 @@ fun Modifier.meshGradientBackground(base: Color): Modifier = composed {
                 y = h * (0.80f + 0.08f * sin(t * twoPi + Math.PI.toFloat()))
             )
             val r2 = maxOf(w, h) * 0.55f
+            
+            // halo 3 - spectral blue
+            val c3 = Offset(
+                x = w * (0.50f + 0.15f * cos(t * twoPi * 1.5f)),
+                y = h * (0.50f + 0.15f * sin(t * twoPi * 1.5f))
+            )
+            val r3 = maxOf(w, h) * 0.50f
+
+            // halo 4 - spectral purple
+            val c4 = Offset(
+                x = w * (0.20f + 0.20f * cos(t * twoPi * 0.8f + Math.PI.toFloat())),
+                y = h * (0.80f + 0.10f * sin(t * twoPi * 0.8f + Math.PI.toFloat()))
+            )
+            val r4 = maxOf(w, h) * 0.60f
 
             val gradient1 = RadialGradient(
                 c1.x, c1.y, r1,
@@ -116,6 +137,20 @@ fun Modifier.meshGradientBackground(base: Color): Modifier = composed {
                 Shader.TileMode.CLAMP
             )
             
+            val gradient3 = RadialGradient(
+                c3.x, c3.y, r3,
+                intArrayOf(Color(0xFF56CCF2).copy(alpha = 0.15f * highFidelityAlpha).toArgb(), android.graphics.Color.TRANSPARENT),
+                null,
+                Shader.TileMode.CLAMP
+            )
+            
+            val gradient4 = RadialGradient(
+                c4.x, c4.y, r4,
+                intArrayOf(Color(0xFF9B51E0).copy(alpha = 0.15f * highFidelityAlpha).toArgb(), android.graphics.Color.TRANSPARENT),
+                null,
+                Shader.TileMode.CLAMP
+            )
+            
             val baseShader = LinearGradient(
                 0f, 0f, 0f, 10f,
                 intArrayOf(base.toArgb(), base.toArgb()),
@@ -123,9 +158,15 @@ fun Modifier.meshGradientBackground(base: Color): Modifier = composed {
                 Shader.TileMode.CLAMP
             )
 
-            // Combine both halos using ADD blending so they merge correctly
-            val combinedHalos = ComposeShader(
+            // Combine halos using ADD blending
+            val halos12 = ComposeShader(
                 gradient2, gradient1, PorterDuff.Mode.ADD
+            )
+            val halos34 = ComposeShader(
+                gradient4, gradient3, PorterDuff.Mode.ADD
+            )
+            val combinedHalos = ComposeShader(
+                halos12, halos34, PorterDuff.Mode.ADD
             )
             
             // Draw halos over the base color

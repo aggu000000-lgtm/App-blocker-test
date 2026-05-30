@@ -26,11 +26,11 @@ fun SectionGroup(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    val auraBrush = com.example.appblocker.ui.theme.LocalAuraBrush.current
     Column(modifier = modifier) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleLarge.copy(brush = auraBrush),
             modifier = Modifier.padding(
                 start = MaterialTheme.spacing.small,
                 bottom = MaterialTheme.spacing.small
@@ -49,6 +49,7 @@ fun ItemTextColumn(
     titleStyle: androidx.compose.ui.text.TextStyle? = null,
     descriptionStyle: androidx.compose.ui.text.TextStyle? = null,
     titleColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified,
+    titleBrush: androidx.compose.ui.graphics.Brush? = null,
     descriptionColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified,
     modifier: Modifier = Modifier
 ) {
@@ -57,10 +58,12 @@ fun ItemTextColumn(
     val defaultDescColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(modifier = modifier) {
+        val mergedTitleStyle = titleStyle ?: defaultTitleStyle
+        val finalTitleStyle = if (titleBrush != null) mergedTitleStyle.copy(brush = titleBrush) else mergedTitleStyle
         Text(
             text = title,
-            style = titleStyle ?: defaultTitleStyle,
-            color = titleColor
+            style = finalTitleStyle,
+            color = if (titleBrush != null) androidx.compose.ui.graphics.Color.Unspecified else titleColor
         )
         if (description != null) {
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.textGap))

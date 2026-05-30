@@ -7,6 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.runtime.getValue
 import com.example.appblocker.ui.foundation.BloomIndication
 
 /**
@@ -44,6 +45,10 @@ private val BrandDarkColors = darkColorScheme(
     outline = BrandColors.darkMuted,
 )
 
+val LocalAuraBrush = androidx.compose.runtime.compositionLocalOf<androidx.compose.ui.graphics.Brush> {
+    error("No aura brush provided")
+}
+
 @Composable
 fun AppBlockerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -51,6 +56,30 @@ fun AppBlockerTheme(
 ) {
     val colorScheme = if (darkTheme) BrandDarkColors else BrandLightColors
     val motion = LocalMotion.current
+    val isHighFidelity = com.example.appblocker.ui.foundation.LocalDynamism.current == com.example.appblocker.ui.foundation.DynamismLevel.HighFidelity
+    
+    val color1 by androidx.compose.animation.animateColorAsState(
+        targetValue = if (isHighFidelity) androidx.compose.ui.graphics.Color(0xFF56CCF2) else BrandColors.accentStart,
+        animationSpec = androidx.compose.animation.core.tween(5000),
+        label = "color1"
+    )
+    val color2 by androidx.compose.animation.animateColorAsState(
+        targetValue = if (isHighFidelity) androidx.compose.ui.graphics.Color(0xFF9B51E0) else BrandColors.accentEnd,
+        animationSpec = androidx.compose.animation.core.tween(5000),
+        label = "color2"
+    )
+    val color3 by androidx.compose.animation.animateColorAsState(
+        targetValue = if (isHighFidelity) BrandColors.accentStart else BrandColors.accentEnd,
+        animationSpec = androidx.compose.animation.core.tween(5000),
+        label = "color3"
+    )
+    
+    val auraBrush = if (isHighFidelity) {
+        androidx.compose.ui.graphics.Brush.linearGradient(listOf(color1, color2, color3))
+    } else {
+        androidx.compose.ui.graphics.Brush.linearGradient(listOf(color1, color2))
+    }
+
     val bloomResources = androidx.compose.runtime.remember(colorScheme, motion) {
         com.example.appblocker.ui.foundation.BloomThemeResources(
             color = BrandColors.accentHalo,
@@ -59,6 +88,7 @@ fun AppBlockerTheme(
     }
     CompositionLocalProvider(
         LocalMotion provides motion,
+        LocalAuraBrush provides auraBrush,
         LocalIndication provides BloomIndication,
         com.example.appblocker.ui.foundation.LocalBloomThemeResources provides bloomResources
     ) {
