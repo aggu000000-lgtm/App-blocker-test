@@ -1,0 +1,3 @@
+HSPLcom/example/appblocker/MainActivity;-><init>()V
+HSPLcom/example/appblocker/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLcom/example/appblocker/AppBlockerAppKt;->AppBlockerApp()V

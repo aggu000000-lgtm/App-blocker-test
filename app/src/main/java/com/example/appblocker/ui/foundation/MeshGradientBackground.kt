@@ -1,23 +1,53 @@
 package com.example.appblocker.ui.foundation
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.toArgb
 import com.example.appblocker.ui.theme.BrandColors
 import kotlin.math.cos
 import kotlin.math.sin
+import android.graphics.ComposeShader
+import android.graphics.LinearGradient
+import android.graphics.PorterDuff
+import android.graphics.RadialGradient
+import android.graphics.Shader
+
+@Composable
+fun rememberMeshGradientProgress(): Float {
+    val isPowerSaveMode = rememberPowerSaveMode()
+    val isVisible = rememberIsVisible()
+    val shouldAnimate = isVisible && !isPowerSaveMode
+
+    var progress by remember { mutableStateOf(0f) }
+
+    LaunchedEffect(shouldAnimate) {
+        if (shouldAnimate) {
+            var lastTime = withFrameNanos { it }
+            while (true) {
+                val currentTime = withFrameNanos { it }
+                val dt = (currentTime - lastTime) / 1_000_000_000f // seconds
+                lastTime = currentTime
+                
+                // 16 seconds loop
+                progress = (progress + dt / 16f) % 1f
+            }
+        }
+    }
+    
+    return progress
+}
 
 /**
  * Slow, ambient mesh-gradient background.
@@ -32,28 +62,11 @@ import kotlin.math.sin
  * tiny so the background never competes with content.
  */
 fun Modifier.meshGradientBackground(base: Color): Modifier = composed {
-    val transition = rememberInfiniteTransition(label = "mesh")
-    // JUSTIFICATION PROTOCOL:
-    // Infinite loop animations require duration-based tweening because Compose's physics-based
-    // animations (springs) inherently aim to reach a target state and settle. A continuous, 
-    // uninterrupted drift without a defined end state requires a repeating fixed duration.
-    // The long 16s duration ensures the "living" aesthetic remains subtle and organic.
-    val t by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 16_000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "meshT"
-    )
+    val t = rememberMeshGradientProgress()
 
     this
         .fillMaxSize()
         .drawBehind {
-            // base fill
-            drawRect(base)
-
             val w = size.width
             val h = size.height
             val twoPi = (2f * Math.PI).toFloat()
@@ -63,31 +76,48 @@ fun Modifier.meshGradientBackground(base: Color): Modifier = composed {
                 x = w * (0.25f + 0.10f * cos(t * twoPi)),
                 y = h * (0.20f + 0.08f * sin(t * twoPi))
             )
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        BrandColors.accentHalo.copy(alpha = 0.18f),
-                        Color.Transparent
-                    ),
-                    center = c1,
-                    radius = maxOf(w, h) * 0.65f
-                )
-            )
+            val r1 = maxOf(w, h) * 0.65f
 
             // halo 2 — bottom-right-ish, drifting in counterphase
             val c2 = Offset(
                 x = w * (0.80f + 0.10f * cos(t * twoPi + Math.PI.toFloat())),
                 y = h * (0.80f + 0.08f * sin(t * twoPi + Math.PI.toFloat()))
             )
+            val r2 = maxOf(w, h) * 0.55f
+
+            val gradient1 = RadialGradient(
+                c1.x, c1.y, r1,
+                intArrayOf(BrandColors.accentHalo.copy(alpha = 0.18f).toArgb(), android.graphics.Color.TRANSPARENT),
+                null,
+                Shader.TileMode.CLAMP
+            )
+            
+            val gradient2 = RadialGradient(
+                c2.x, c2.y, r2,
+                intArrayOf(BrandColors.accentEnd.copy(alpha = 0.12f).toArgb(), android.graphics.Color.TRANSPARENT),
+                null,
+                Shader.TileMode.CLAMP
+            )
+            
+            val baseShader = LinearGradient(
+                0f, 0f, 0f, 10f,
+                intArrayOf(base.toArgb(), base.toArgb()),
+                null,
+                Shader.TileMode.CLAMP
+            )
+
+            // Combine both halos using ADD blending so they merge correctly
+            val combinedHalos = ComposeShader(
+                gradient2, gradient1, PorterDuff.Mode.ADD
+            )
+            
+            // Draw halos over the base color
+            val finalShader = ComposeShader(
+                baseShader, combinedHalos, PorterDuff.Mode.SRC_OVER
+            )
+
             drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        BrandColors.accentEnd.copy(alpha = 0.12f),
-                        Color.Transparent
-                    ),
-                    center = c2,
-                    radius = maxOf(w, h) * 0.55f
-                )
+                brush = ShaderBrush(finalShader)
             )
         }
 }

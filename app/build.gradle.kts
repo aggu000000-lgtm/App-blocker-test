@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("androidx.baselineprofile")
 }
 
 android {
@@ -89,4 +90,15 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+}
+dependencies { implementation("androidx.profileinstaller:profileinstaller:1.3.1") }
+
+baselineProfile {
+    // Defines the baseline profile plugin behavior
+    saveInSrc = true
+    automaticGenerationDuringBuild = true
+}
+
+dependencies {
+    "baselineProfile"(project(":benchmark"))
 }
