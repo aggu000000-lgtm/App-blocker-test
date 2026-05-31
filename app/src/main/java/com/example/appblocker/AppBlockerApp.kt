@@ -76,14 +76,19 @@ fun AppBlockerApp() {
         LocalDynamism provides currentDynamism,
         com.example.appblocker.ui.foundation.LocalAdaptiveVisuals provides adaptiveVisualsState
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .meshGradientBackground(
-                    base = MaterialTheme.colorScheme.background
-                )
-        ) {
-            Scaffold(
+        com.example.appblocker.ui.theme.AppBlockerTheme {
+            androidx.compose.material3.Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .meshGradientBackground(
+                            base = MaterialTheme.colorScheme.background
+                        )
+                ) {
+                    Scaffold(
                 containerColor = androidx.compose.ui.graphics.Color.Transparent,
                 bottomBar = {
                 NavigationBar {
@@ -143,6 +148,8 @@ fun AppBlockerApp() {
                 composable<RouteSettings> { SettingsScreen() }
             }
         }
+        }
+            }
         }
     }
 }

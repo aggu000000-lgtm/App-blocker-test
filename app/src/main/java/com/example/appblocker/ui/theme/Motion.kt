@@ -31,6 +31,10 @@ data class Motion(
     val interactiveSpringInt: androidx.compose.animation.core.SpringSpec<Int> = spring(
         dampingRatio = 0.65f,
         stiffness = 1500f
+    ),
+    val interactiveSpringColor: androidx.compose.animation.core.SpringSpec<androidx.compose.ui.graphics.Color> = spring(
+        dampingRatio = 0.65f,
+        stiffness = 1500f
     )
 )
 
