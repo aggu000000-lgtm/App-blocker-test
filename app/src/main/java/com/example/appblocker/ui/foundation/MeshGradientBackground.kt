@@ -9,7 +9,6 @@ import android.graphics.RuntimeShader
 import android.graphics.Shader
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -51,7 +50,7 @@ fun rememberMeshGradientProgress(): Float {
 
     val currentSpeed by animateFloatAsState(
         targetValue = targetSpeed,
-        animationSpec = tween(5000),
+        animationSpec = LocalMotion.current.interactiveSpring,
         label = "gradientSpeed"
     )
 
@@ -166,7 +165,7 @@ fun Modifier.meshGradientBackground(base: Color): Modifier = composed {
 
     val highFidelityAlpha by animateFloatAsState(
         targetValue = if (isHighFidelity) 1f else 0f,
-        animationSpec = tween(5000),
+        animationSpec = LocalMotion.current.interactiveSpring,
         label = "highFidelityAlpha"
     )
 
@@ -177,12 +176,14 @@ fun Modifier.meshGradientBackground(base: Color): Modifier = composed {
     
     // Dynamic alpha based on fidelity and ambient state
     val baseAlpha = 0.15f + (0.10f * highFidelityAlpha)
+    
+    val motion = LocalMotion.current
 
-    val c1 by animateColorAsState(targetValue = palette[0].copy(alpha = baseAlpha), animationSpec = tween(2000), label = "c1")
-    val c2 by animateColorAsState(targetValue = palette[1].copy(alpha = baseAlpha), animationSpec = tween(2000), label = "c2")
-    val c3 by animateColorAsState(targetValue = palette[2].copy(alpha = baseAlpha), animationSpec = tween(2000), label = "c3")
-    val c4 by animateColorAsState(targetValue = palette[3].copy(alpha = baseAlpha), animationSpec = tween(2000), label = "c4")
-    val c5 by animateColorAsState(targetValue = palette[4].copy(alpha = baseAlpha), animationSpec = tween(2000), label = "c5")
+    val c1 by animateColorAsState(targetValue = palette[0].copy(alpha = baseAlpha), animationSpec = motion.interactiveSpringColor, label = "c1")
+    val c2 by animateColorAsState(targetValue = palette[1].copy(alpha = baseAlpha), animationSpec = motion.interactiveSpringColor, label = "c2")
+    val c3 by animateColorAsState(targetValue = palette[2].copy(alpha = baseAlpha), animationSpec = motion.interactiveSpringColor, label = "c3")
+    val c4 by animateColorAsState(targetValue = palette[3].copy(alpha = baseAlpha), animationSpec = motion.interactiveSpringColor, label = "c4")
+    val c5 by animateColorAsState(targetValue = palette[4].copy(alpha = baseAlpha), animationSpec = motion.interactiveSpringColor, label = "c5")
 
     val runtimeShader = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

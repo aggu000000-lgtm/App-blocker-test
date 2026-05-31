@@ -60,17 +60,17 @@ fun AppBlockerTheme(
     
     val color1 by androidx.compose.animation.animateColorAsState(
         targetValue = if (isHighFidelity) androidx.compose.ui.graphics.Color(0xFF56CCF2) else BrandColors.accentStart,
-        animationSpec = androidx.compose.animation.core.tween(5000),
+        animationSpec = motion.interactiveSpringColor,
         label = "color1"
     )
     val color2 by androidx.compose.animation.animateColorAsState(
         targetValue = if (isHighFidelity) androidx.compose.ui.graphics.Color(0xFF9B51E0) else BrandColors.accentEnd,
-        animationSpec = androidx.compose.animation.core.tween(5000),
+        animationSpec = motion.interactiveSpringColor,
         label = "color2"
     )
     val color3 by androidx.compose.animation.animateColorAsState(
         targetValue = if (isHighFidelity) BrandColors.accentStart else BrandColors.accentEnd,
-        animationSpec = androidx.compose.animation.core.tween(5000),
+        animationSpec = motion.interactiveSpringColor,
         label = "color3"
     )
     
