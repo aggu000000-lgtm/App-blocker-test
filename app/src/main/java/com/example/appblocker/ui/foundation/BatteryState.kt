@@ -38,7 +38,7 @@ fun rememberBatteryInfo(): State<BatteryInfo> {
             }
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val intent = context.registerReceiver(receiver, filter)
+        val intent = BroadcastUtil.registerReceiver(context, receiver, filter)
         // Initial value
         if (intent != null) {
             val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)

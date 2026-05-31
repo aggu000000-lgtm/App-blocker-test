@@ -25,7 +25,8 @@ fun rememberPowerSaveMode(): Boolean {
                 isPowerSaveMode = powerManager.isPowerSaveMode
             }
         }
-        context.registerReceiver(
+        BroadcastUtil.registerReceiver(
+            context,
             receiver,
             IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
         )
