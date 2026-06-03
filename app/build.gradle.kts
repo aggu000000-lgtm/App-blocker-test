@@ -15,10 +15,23 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        create("customRelease") {
+            storeFile = file("distraction_blocker_release.jks")
+            storePassword = "distractionshield"
+            keyAlias = "distraction_shield_key"
+            keyPassword = "distractionshield"
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("customRelease")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("customRelease")
         }
     }
     compileOptions {

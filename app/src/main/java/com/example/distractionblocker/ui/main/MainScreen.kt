@@ -105,7 +105,7 @@ fun MainScreen(
                                 modifier = Modifier.padding(bottom = 14.dp)
                             )
                             BounceButton(
-                                onClick = { viewModel.openAccessibilitySettings(context) },
+                                onClick = { viewModel.showAccessibilityDisclosure() },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
@@ -451,6 +451,117 @@ fun MainScreen(
                             ) {
                                 Text(
                                     text = "End Deep Focus",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 7. Accessibility Prominent Disclosure Modal Overlay (Liquid Glass Dialog)
+            if (state.showAccessibilityDisclosure) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.6f))
+                        .clickable(enabled = false) {}, // Intercept clicks
+                    contentAlignment = Alignment.Center
+                ) {
+                    GlassmorphicCard(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .wrapContentHeight()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Accessibility Permission",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                            
+                            Text(
+                                text = "Distraction Shield requires the Accessibility Service permission to block apps during active focus sessions. Here is how we protect your privacy:",
+                                fontSize = 13.sp,
+                                color = TextSecondary,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 19.sp,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+
+                            // Glassmorphic Bullet points
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 24.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Color.White.copy(alpha = 0.03f))
+                                    .padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.Top) {
+                                    Text(text = "🎯 ", fontSize = 14.sp)
+                                    Text(
+                                        text = "Purpose: We only monitor which application is currently in the foreground (window state changes) so we can block distracting apps when your lock timer is active.",
+                                        fontSize = 12.sp,
+                                        color = Color.White
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.Top) {
+                                    Text(text = "🛡️ ", fontSize = 14.sp)
+                                    Text(
+                                        text = "Privacy First: We do NOT track, read, collect, or store any personal data or screen content. Everything is evaluated locally on your device.",
+                                        fontSize = 12.sp,
+                                        color = Color.White
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.Top) {
+                                    Text(text = "📡 ", fontSize = 14.sp)
+                                    Text(
+                                        text = "Zero Networks: No data is sent over the internet or shared with third parties. The app runs completely offline.",
+                                        fontSize = 12.sp,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+
+                            // Action buttons
+                            BounceButton(
+                                onClick = {
+                                    viewModel.dismissAccessibilityDisclosure()
+                                    viewModel.openAccessibilitySettings(context)
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                            ) {
+                                Text(
+                                    text = "Agree & Proceed",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .border(1.dp, GlassBorderLight, RoundedCornerShape(14.dp))
+                                    .clickable { viewModel.dismissAccessibilityDisclosure() }
+                                    .padding(vertical = 14.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Cancel",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White

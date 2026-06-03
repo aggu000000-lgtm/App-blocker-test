@@ -12,6 +12,7 @@ This file maintains the development state of the **Distraction Blocker** app acr
   - Strict block session timer where user cannot bypass the lock.
   - Expiry prompt: Option to extend or release.
   - UI styled with animated colorful fluid gradients (aurora canvas) and frosted liquid glass.
+  - **Play Protect Compliance**: Replaced `QUERY_ALL_PACKAGES` permission with targeted `<queries>` block; added a prominent in-app disclosure dialog; signed both builds using a custom keystore `distraction_blocker_release.jks`.
 - **Environment**:
   - OS: Windows
   - IDE/Build: Android CLI (`C:\Users\hp1\AppData\AndroidCLI\android.exe`)
@@ -19,15 +20,14 @@ This file maintains the development state of the **Distraction Blocker** app acr
   - ANDROID_HOME: `C:\Users\hp1\AppData\Local\Android\Sdk`
 
 ## Next Steps
-1. **Initialize Project**: Generate the template using the `empty-activity` command.
-2. **Apply Configurations**: Edit `AndroidManifest.xml` and gradle configurations.
-3. **Core Coding**:
-   - Persist blocked list & timers in `BlockedAppsManager`.
-   - Build background interceptor service (`AppBlockerService`).
-   - Draw canvas-animated custom `AuroraBackground`.
-   - Build `GlassmorphicCard` & `BounceButton`.
-   - Implement settings search UI in `MainActivity`.
-   - Build lock interface in `BlockerActivity`.
+1. **Explore Visual Upgrades**:
+   - Implement custom AGSL fragment shaders (API 33+) for real-time lens distortion, chromatic aberration, and noise grain overlays.
+   - Build a swipeable Cinematic Onboarding tour for permissions and user setup.
+   - Create a Focus Insights dashboard tab.
+2. **Security & Logic Enhancements**:
+   - Implement Blocker Bypass Protection to prevent force-stops or disabling accessibility settings during lock sessions.
+   - Design App Grouping/Profiles.
+   - Build Recurring Block Schedules.
 
 ## Resuming Execution
 When entering a new session, run:

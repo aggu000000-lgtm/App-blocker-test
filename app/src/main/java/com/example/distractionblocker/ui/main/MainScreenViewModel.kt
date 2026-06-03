@@ -36,6 +36,7 @@ data class MainScreenState(
     val sessionEndTime: Long = 0L,
     val sessionTotalDuration: Long = 0L,
     val showExtensionPrompt: Boolean = false,
+    val showAccessibilityDisclosure: Boolean = false,
     val isLoading: Boolean = true
 )
 
@@ -183,6 +184,20 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
      */
     fun dismissExtensionPrompt() {
         _uiState.update { it.copy(showExtensionPrompt = false) }
+    }
+
+    /**
+     * Shows the accessibility disclosure dialog.
+     */
+    fun showAccessibilityDisclosure() {
+        _uiState.update { it.copy(showAccessibilityDisclosure = true) }
+    }
+
+    /**
+     * Dismisses the accessibility disclosure dialog.
+     */
+    fun dismissAccessibilityDisclosure() {
+        _uiState.update { it.copy(showAccessibilityDisclosure = false) }
     }
 
     /**

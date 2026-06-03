@@ -26,3 +26,12 @@ All notable changes to this project will be documented in this file.
   - Built `MainScreen` with neon slides, timer selection grids, and permission help overlays.
   - Resolved compiler warnings (safe null checking for packages) and Compose compiler context resolutions.
 - Verified compilation and successfully ran build `.\gradlew.bat assembleDebug`.
+
+## [0.3.0] - 2026-06-03
+
+### Changed
+- Replaced the highly flagged, sensitive `QUERY_ALL_PACKAGES` permission in `AndroidManifest.xml` with a targeted `<queries>` intent block matching launcher main activities, complying with Play Protect policies.
+
+### Added
+- Created an elegant, in-app prominent Accessibility Service disclosure popup inside `MainScreen` that ensures explicit consent and details how window tracking works before redirecting the user.
+- Configured a dedicated project-specific keystore (`distraction_blocker_release.jks`) to sign the APK, replacing Gradle's default public debug credentials to establish a unique signature.

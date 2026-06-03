@@ -35,5 +35,5 @@ graph TD
 ## 3. Package Query Configuration
 
 Due to Android 11+ restrictions, we declare package querying capabilities:
-- **Permission**: `android.permission.QUERY_ALL_PACKAGES`
-- **Retrieval**: `packageManager.getInstalledApplications(PackageManager.GET_META_DATA)` or `getInstalledPackages(0)` is used to list user-installed launcher apps, filtering out critical system packages (e.g. system UI, settings) to avoid blocking essential phone functions.
+- **Queries Manifest Block**: Instead of requesting the high-risk, policy-flagged `QUERY_ALL_PACKAGES` permission, we use a targeted `<queries>` intent block matching launcher activities.
+- **Retrieval**: `packageManager.getInstalledPackages(0)` is used to list user-installed launcher apps. On Android 11+, the OS automatically filters this list to only return apps matching our launcher intent queries, ensuring privacy-compliant package retrieval.
