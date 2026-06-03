@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">DistractionBlocker</string>
+    <string name="accessibility_service_description">Monitors foreground applications and enforces focus sessions to prevent distracting app usage.</string>
+</resources>
