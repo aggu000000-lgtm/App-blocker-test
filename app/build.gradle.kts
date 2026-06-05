@@ -5,10 +5,10 @@ plugins {
 }
 
 android {
-    namespace = "com.example.distractionblocker"
+    namespace = "com.antigravity.distractionshield"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.example.distractionblocker"
+        applicationId = "com.antigravity.distractionshield"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
