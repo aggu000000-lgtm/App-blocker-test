@@ -5,6 +5,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-06-06
+
+### Added
+- Implemented a dynamic theme engine supporting System, Light, and Dark modes.
+- Added Android 12+ (API 31+) Dynamic Color support (Material You) to match system wallpaper color palettes.
+- Designed a custom-drawn Canvas settings gear button in the header section.
+- Built a polished, glassmorphic settings dialog overlay (`ThemeSettingsDialog`) to toggle theme customization options.
+- Introduced `ThemeConfig` CompositionLocal to customize refraction borders, card transparency, and background blobs dynamically based on the active theme.
+
+### Fixed
+- Resolved the critical visual bug forcing a white background base in dark mode.
+- Corrected global text color variables to resolve dynamically from `MaterialTheme.colorScheme` instead of static color codes.
+- Added `enableEdgeToEdge()` inside `BlockerActivity` to align status/navigation bar appearance.
+
 ## [0.5.0] - 2026-06-05
 
 ### Added

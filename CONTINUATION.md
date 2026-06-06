@@ -11,10 +11,11 @@ This file maintains the development state of the **Distraction Blocker** app acr
   - `AccessibilityService` for instantaneous window interception.
   - Strict block session timer where user cannot bypass the lock.
   - Expiry prompt: Option to extend or release.
-  - **Premium Visual Overhaul (Completed)**:
-    - Pure white background with organic, morphing irregular gradient shapes using 5 colors (Green, Yellow, Red, Pink, Magenta).
+  - **Premium Visual Overhaul & Theme Engine (Completed)**:
+    - Pure white background (light mode) and deep obsidian black background (dark mode) with organic, morphing irregular gradient shapes using 5 colors.
     - Custom typography using the offline-bundled **Outfit** font family (loaded directly from resources).
     - Polished 3D liquid glass cards with a diagonal animated specular shine sweep, double-gradient refraction borders, and ambient drop shadows.
+    - Full-scale dynamic theme engine supporting System, Light, and Dark modes, plus Android 12+ wallpaper dynamic colors (Material You). Persisted reactively using `OnSharedPreferenceChangeListener`.
   - **Play Protect Compliance**: Replaced `QUERY_ALL_PACKAGES` permission with targeted `<queries>` block; added a prominent in-app disclosure dialog; signed both builds using a custom keystore `distraction_blocker_release.jks`.
 - **Environment**:
   - OS: Windows

@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.MaterialTheme
 import com.antigravity.distractionshield.theme.*
 import kotlin.math.cos
 import kotlin.math.sin
@@ -57,10 +58,31 @@ fun AuroraBackground(
         label = "drift_y"
     )
 
+    val baseBgColor = MaterialTheme.colorScheme.background
+    val blobColors = LocalThemeConfig.current.auroraBlobColors
+    val colors1 = if (blobColors.size >= 5) blobColors else listOf(
+        GradientGreen.copy(alpha = 0.55f),
+        GradientYellow.copy(alpha = 0.6f),
+        GradientRed.copy(alpha = 0.55f),
+        GradientPink.copy(alpha = 0.6f),
+        GradientMagenta.copy(alpha = 0.55f)
+    )
+    val colors2 = if (blobColors.size >= 5) {
+        listOf(blobColors[4], blobColors[3], blobColors[2], blobColors[1], blobColors[0])
+    } else {
+        listOf(
+            GradientMagenta.copy(alpha = 0.4f),
+            GradientPink.copy(alpha = 0.45f),
+            GradientRed.copy(alpha = 0.4f),
+            GradientYellow.copy(alpha = 0.45f),
+            GradientGreen.copy(alpha = 0.4f)
+        )
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White) // Pure white background as requested
+            .background(baseBgColor)
     ) {
         Canvas(
             modifier = Modifier
@@ -107,13 +129,7 @@ fun AuroraBackground(
 
             // 5-Color Linear Gradient: Green, Yellow, Red, Pink, Magenta
             val brush5Color = Brush.linearGradient(
-                colors = listOf(
-                    GradientGreen.copy(alpha = 0.55f),
-                    GradientYellow.copy(alpha = 0.6f),
-                    GradientRed.copy(alpha = 0.55f),
-                    GradientPink.copy(alpha = 0.6f),
-                    GradientMagenta.copy(alpha = 0.55f)
-                ),
+                colors = colors1,
                 start = Offset(cx1 - baseRadius1, cy1 - baseRadius1),
                 end = Offset(cx1 + baseRadius1, cy1 + baseRadius1)
             )
@@ -152,13 +168,7 @@ fun AuroraBackground(
             path2.close()
 
             val brushCompanion = Brush.linearGradient(
-                colors = listOf(
-                    GradientMagenta.copy(alpha = 0.4f),
-                    GradientPink.copy(alpha = 0.45f),
-                    GradientRed.copy(alpha = 0.4f),
-                    GradientYellow.copy(alpha = 0.45f),
-                    GradientGreen.copy(alpha = 0.4f)
-                ),
+                colors = colors2,
                 start = Offset(cx2 + baseRadius2, cy2 - baseRadius2),
                 end = Offset(cx2 - baseRadius2, cy2 + baseRadius2)
             )
@@ -170,7 +180,7 @@ fun AuroraBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Brush.verticalGradient(
-                    colors = listOf(Color.White.copy(alpha = 0.0f), Color.White.copy(alpha = 0.25f))
+                    colors = listOf(baseBgColor.copy(alpha = 0.0f), baseBgColor.copy(alpha = 0.25f))
                 ))
         )
 

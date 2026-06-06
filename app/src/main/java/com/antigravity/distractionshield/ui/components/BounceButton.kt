@@ -22,8 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
-import com.antigravity.distractionshield.theme.NeonCyan
-import com.antigravity.distractionshield.theme.NeonPurple
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun BounceButton(
@@ -49,7 +48,10 @@ fun BounceButton(
 
     val shape = RoundedCornerShape(14.dp)
     val brush = if (useNeonGradient) {
-        Brush.linearGradient(colors = listOf(NeonCyan, NeonPurple))
+        Brush.linearGradient(colors = listOf(
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.secondary
+        ))
     } else {
         Brush.linearGradient(colors = listOf(backgroundColor, backgroundColor))
     }

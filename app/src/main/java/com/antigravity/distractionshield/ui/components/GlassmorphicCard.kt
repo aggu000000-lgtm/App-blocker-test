@@ -19,9 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.antigravity.distractionshield.theme.GlassBase
-import com.antigravity.distractionshield.theme.GlassBorderDark
-import com.antigravity.distractionshield.theme.GlassBorderLight
+import com.antigravity.distractionshield.theme.*
 
 @Composable
 fun GlassmorphicCard(
@@ -55,12 +53,12 @@ fun GlassmorphicCard(
             )
             .clip(glassShape)
             // 2. High-translucency glass base
-            .background(GlassBase)
+            .background(LocalThemeConfig.current.glassBase)
             // 3. 3D Refraction Border (diagonal gradient: bright top-left to fading dark bottom-right)
             .border(
                 width = 1.dp,
                 brush = Brush.linearGradient(
-                    colors = listOf(GlassBorderLight, GlassBorderDark),
+                    colors = listOf(LocalThemeConfig.current.glassBorderLight, LocalThemeConfig.current.glassBorderDark),
                     start = Offset(0f, 0f),
                     end = Offset.Infinite
                 ),

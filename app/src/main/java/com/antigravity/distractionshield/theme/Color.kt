@@ -6,6 +6,10 @@ import androidx.compose.ui.graphics.Color
 val ObsidianBg = Color(0xFFFFFFFF) // White background
 val ObsidianSurface = Color(0xFFF9FAFB) // Warm white/gray surface
 
+// Premium Dark Theme Palette
+val ObsidianBgDark = Color(0xFF090514) // Deep obsidian black/purple background base
+val ObsidianSurfaceDark = Color(0xFF15131C) // Deep container surface
+
 // 5-Color Irregular Gradient Colors
 val GradientGreen = Color(0xFF2ECC71)
 val GradientYellow = Color(0xFFF1C40F)
@@ -20,8 +24,16 @@ val NeonPink = Color(0xFFEC4899)
 val WarmCoral = Color(0xFFF43F5E)
 
 // Slate/charcoal text colors for light mode contrast
-val TextPrimary = Color(0xFF121214)
-val TextSecondary = Color(0xFF6B7280)
+val LightTextPrimary = Color(0xFF121214)
+val LightTextSecondary = Color(0xFF6B7280)
+
+// Off-white text colors for dark mode contrast
+val DarkTextPrimary = Color(0xFFF3F4F6)
+val DarkTextSecondary = Color(0xFF9CA3AF)
+
+// Legacy Fallbacks (Deprecated - use Theme ColorScheme mapping in components)
+val TextPrimary = LightTextPrimary
+val TextSecondary = LightTextSecondary
 
 // Polished 3D Glass Colors (transparency & refraction highlights)
 val GlassBase = Color(0x0CFFFFFF) // Dynamic transparent white

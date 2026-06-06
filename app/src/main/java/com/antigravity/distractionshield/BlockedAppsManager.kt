@@ -11,6 +11,50 @@ class BlockedAppsManager(context: Context) {
         private const val KEY_BLOCKED_PACKAGES = "blocked_packages"
         private const val KEY_SESSION_END_TIME = "session_end_time"
         private const val KEY_SESSION_TOTAL_DURATION = "session_total_duration"
+        const val KEY_THEME_MODE = "theme_mode"
+        const val KEY_USE_DYNAMIC_COLOR = "use_dynamic_color"
+    }
+
+    /**
+     * Get user-defined theme mode (SYSTEM, LIGHT, DARK).
+     */
+    fun getThemeMode(): String {
+        return prefs.getString(KEY_THEME_MODE, "SYSTEM") ?: "SYSTEM"
+    }
+
+    /**
+     * Set user-defined theme mode.
+     */
+    fun setThemeMode(mode: String) {
+        prefs.edit().putString(KEY_THEME_MODE, mode).apply()
+    }
+
+    /**
+     * Check if Android 12+ wallpaper dynamic color is enabled.
+     */
+    fun getUseDynamicColor(): Boolean {
+        return prefs.getBoolean(KEY_USE_DYNAMIC_COLOR, false)
+    }
+
+    /**
+     * Set Android 12+ wallpaper dynamic color enablement.
+     */
+    fun setUseDynamicColor(use: Boolean) {
+        prefs.edit().putBoolean(KEY_USE_DYNAMIC_COLOR, use).apply()
+    }
+
+    /**
+     * Register a listener for preference updates.
+     */
+    fun registerListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    /**
+     * Unregister a listener for preference updates.
+     */
+    fun unregisterListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs.unregisterOnSharedPreferenceChangeListener(listener)
     }
 
     /**

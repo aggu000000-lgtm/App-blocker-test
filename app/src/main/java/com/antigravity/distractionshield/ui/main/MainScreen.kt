@@ -31,9 +31,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.antigravity.distractionshield.theme.*
+import com.antigravity.distractionshield.BlockedAppsManager
+import kotlin.math.cos
+import kotlin.math.sin
 import com.antigravity.distractionshield.ui.components.AuroraBackground
 import com.antigravity.distractionshield.ui.components.BounceButton
 import com.antigravity.distractionshield.ui.components.GlassmorphicCard
@@ -50,6 +55,11 @@ fun MainScreen(
     val app = context.applicationContext as Application
     val viewModel: MainScreenViewModel = viewModel { MainScreenViewModel(app) }
     val state by viewModel.uiState.collectAsState(initial = MainScreenState())
+    val blockedAppsManager = remember { BlockedAppsManager(context) }
+    var showThemeDialog by remember { mutableStateOf(false) }
+
+    val TextPrimary = MaterialTheme.colorScheme.onBackground
+    val TextSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     AuroraBackground {
         Box(
@@ -63,20 +73,66 @@ fun MainScreen(
                     .padding(horizontal = 20.dp)
             ) {
                 // 1. Header Section
-                Text(
-                    text = "Distraction Shield",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(top = 28.dp, bottom = 4.dp)
-                )
-                Text(
-                    text = "SwiftUI-Grade Deep Focus",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(bottom = 20.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 28.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Distraction Shield",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "SwiftUI-Grade Deep Focus",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextSecondary
+                        )
+                    }
+                    // Gear Icon for Theme Settings
+                    IconButton(
+                        onClick = { showThemeDialog = true },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Canvas(modifier = Modifier.size(24.dp)) {
+                            val strokeWidth = 2.dp.toPx()
+                            // Draw gear center circle
+                            drawCircle(
+                                color = TextPrimary,
+                                radius = 4.dp.toPx(),
+                                style = Stroke(width = strokeWidth)
+                            )
+                            // Draw outer ring
+                            drawCircle(
+                                color = TextPrimary,
+                                radius = 8.dp.toPx(),
+                                style = Stroke(width = strokeWidth)
+                            )
+                            // Draw gear teeth (simple spokes)
+                            val numSpokes = 8
+                            for (j in 0 until numSpokes) {
+                                val angleSpoke = j * (2 * Math.PI.toFloat() / numSpokes)
+                                val startX = center.x + 8.dp.toPx() * cos(angleSpoke)
+                                val startY = center.y + 8.dp.toPx() * sin(angleSpoke)
+                                val endX = center.x + 11.dp.toPx() * cos(angleSpoke)
+                                val endY = center.y + 11.dp.toPx() * sin(angleSpoke)
+                                drawLine(
+                                    color = TextPrimary,
+                                    start = Offset(startX, startY),
+                                    end = Offset(endX, endY),
+                                    strokeWidth = strokeWidth
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // 2. Permission / Status Bar
                 if (!state.isAccessibilityEnabled) {
@@ -571,6 +627,142 @@ fun MainScreen(
                     }
                 }
             }
+
+            // 8. Theme Settings Dialog (Liquid Glass Modal Overlay)
+            if (showThemeDialog) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .clickable { showThemeDialog = false }, // Close when clicking outer scrim
+                    contentAlignment = Alignment.Center
+                ) {
+                    GlassmorphicCard(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .wrapContentHeight()
+                            .clickable(enabled = false) {} // Intercept clicks inside card
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Theme Customization",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+
+                            // Theme Selection Section
+                            Text(
+                                text = "Theme Mode",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextSecondary,
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                            )
+
+                            // Segmented theme selection
+                            val themeOptions = listOf("SYSTEM", "LIGHT", "DARK")
+                            val currentThemeMode = blockedAppsManager.getThemeMode()
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 20.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                themeOptions.forEach { option ->
+                                    val isSelected = currentThemeMode == option
+                                    val chipBg by animateColorAsState(
+                                        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else TextSecondary.copy(alpha = 0.08f),
+                                        label = "theme_chip_bg"
+                                    )
+                                    val chipTextColor by animateColorAsState(
+                                        targetValue = if (isSelected) Color.White else TextPrimary,
+                                        label = "theme_chip_text"
+                                    )
+
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(horizontal = 4.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(chipBg)
+                                            .clickable {
+                                                blockedAppsManager.setThemeMode(option)
+                                            }
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = option.lowercase().replaceFirstChar { it.uppercase() },
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = chipTextColor
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Dynamic Color Section (Android 12+)
+                            val isAndroid12Plus = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 24.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Dynamic Color",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = TextPrimary
+                                    )
+                                    Text(
+                                        text = if (isAndroid12Plus) {
+                                            "Match visual accents with system wallpaper colors"
+                                        } else {
+                                            "Requires Android 12 or higher (API 31+)"
+                                        },
+                                        fontSize = 11.sp,
+                                        color = TextSecondary,
+                                        lineHeight = 15.sp
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                val isDynamicEnabled = blockedAppsManager.getUseDynamicColor()
+                                NeonToggle(
+                                    checked = isDynamicEnabled,
+                                    enabled = isAndroid12Plus,
+                                    onCheckedChange = { checked ->
+                                        blockedAppsManager.setUseDynamicColor(checked)
+                                    }
+                                )
+                            }
+
+                            // Close Button
+                            BounceButton(
+                                onClick = { showThemeDialog = false },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Done",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -582,6 +774,8 @@ fun AppItemRow(
     onToggle: () -> Unit
 ) {
     val pm = LocalContext.current.packageManager
+    val TextPrimary = MaterialTheme.colorScheme.onBackground
+    val TextSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     // Asynchronously load app icon into memory to keep performance extremely slick
     val appIcon = remember(app.packageName) {
@@ -654,6 +848,7 @@ fun NeonToggle(
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val TextSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     // Dynamic animations for thumb slide offsets and track color shifts
     val offsetAnimation by animateFloatAsState(
         targetValue = if (checked) 20f else 0f,
@@ -661,7 +856,7 @@ fun NeonToggle(
         label = "toggle_slide"
     )
     val colorAnimation by animateColorAsState(
-        targetValue = if (checked) NeonCyan else TextSecondary.copy(alpha = 0.2f),
+        targetValue = if (checked) MaterialTheme.colorScheme.primary else TextSecondary.copy(alpha = 0.2f),
         label = "toggle_color"
     )
 

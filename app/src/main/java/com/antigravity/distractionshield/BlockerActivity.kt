@@ -20,10 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.enableEdgeToEdge
 import com.antigravity.distractionshield.theme.DistractionBlockerTheme
 import com.antigravity.distractionshield.theme.NeonCyan
-import com.antigravity.distractionshield.theme.TextPrimary
-import com.antigravity.distractionshield.theme.TextSecondary
 import com.antigravity.distractionshield.ui.components.AuroraBackground
 import com.antigravity.distractionshield.ui.components.BounceButton
 import com.antigravity.distractionshield.ui.components.GlassmorphicCard
@@ -52,12 +51,34 @@ class BlockerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         blockedAppsManager = BlockedAppsManager(applicationContext)
 
+        enableEdgeToEdge()
+
         // Select a quote based on current time index to vary it across launches
         val quote = QUOTES[(System.currentTimeMillis() % QUOTES.size).toInt()]
         val blockedPackage = intent.getStringExtra(EXTRA_BLOCKED_PACKAGE) ?: "Blocked App"
 
         setContent {
-            DistractionBlockerTheme {
+            val themeMode = remember { mutableStateOf(blockedAppsManager.getThemeMode()) }
+            val useDynamicColor = remember { mutableStateOf(blockedAppsManager.getUseDynamicColor()) }
+
+            DisposableEffect(blockedAppsManager) {
+                val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                    if (key == BlockedAppsManager.KEY_THEME_MODE) {
+                        themeMode.value = blockedAppsManager.getThemeMode()
+                    } else if (key == BlockedAppsManager.KEY_USE_DYNAMIC_COLOR) {
+                        useDynamicColor.value = blockedAppsManager.getUseDynamicColor()
+                    }
+                }
+                blockedAppsManager.registerListener(listener)
+                onDispose {
+                    blockedAppsManager.unregisterListener(listener)
+                }
+            }
+
+            DistractionBlockerTheme(
+                themeMode = themeMode.value,
+                useDynamicColor = useDynamicColor.value
+            ) {
                 // Intercept hardware Back press and force user to exit to Launcher
                 BackHandler {
                     exitToLauncher()
@@ -183,7 +204,7 @@ fun BlockerScreen(
                         text = "Focus Lock Active",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -193,7 +214,7 @@ fun BlockerScreen(
                         text = "\"$quote\"",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
-                        color = TextSecondary,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         lineHeight = 22.sp,
                         modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 24.dp)
