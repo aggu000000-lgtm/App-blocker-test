@@ -7,41 +7,26 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.antigravity.distractionshield.theme.DistractionBlockerTheme
+import com.antigravity.distractionshield.presentation.main.MainActivityViewModel
 
 class MainActivity : ComponentActivity() {
-  private lateinit var blockedAppsManager: BlockedAppsManager
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    blockedAppsManager = BlockedAppsManager(applicationContext)
-
     enableEdgeToEdge()
-    setContent {
-      val themeMode = remember { mutableStateOf(blockedAppsManager.getThemeMode()) }
-      val useDynamicColor = remember { mutableStateOf(blockedAppsManager.getUseDynamicColor()) }
 
-      DisposableEffect(blockedAppsManager) {
-        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-          if (key == BlockedAppsManager.KEY_THEME_MODE) {
-            themeMode.value = blockedAppsManager.getThemeMode()
-          } else if (key == BlockedAppsManager.KEY_USE_DYNAMIC_COLOR) {
-            useDynamicColor.value = blockedAppsManager.getUseDynamicColor()
-          }
-        }
-        blockedAppsManager.registerListener(listener)
-        onDispose {
-          blockedAppsManager.unregisterListener(listener)
-        }
-      }
+    setContent {
+      val viewModel: MainActivityViewModel = viewModel { MainActivityViewModel() }
+      val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
 
       DistractionBlockerTheme(
-        themeMode = themeMode.value,
-        useDynamicColor = useDynamicColor.value
+        themeMode = themeSettings.themeMode,
+        useDynamicColor = themeSettings.useDynamicColor
       ) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
           MainNavigation()

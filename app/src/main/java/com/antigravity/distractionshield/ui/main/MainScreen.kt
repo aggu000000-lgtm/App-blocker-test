@@ -35,8 +35,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.antigravity.distractionshield.theme.*
-import com.antigravity.distractionshield.BlockedAppsManager
+import com.antigravity.distractionshield.domain.model.AppInfo
+import com.antigravity.distractionshield.domain.model.ThemeSettings
+import com.antigravity.distractionshield.theme.NeonCyan
+import com.antigravity.distractionshield.theme.GlassBase
+import com.antigravity.distractionshield.theme.GlassBorderDark
+import com.antigravity.distractionshield.theme.GlassBorderLight
 import kotlin.math.cos
 import kotlin.math.sin
 import com.antigravity.distractionshield.ui.components.AuroraBackground
@@ -55,7 +59,7 @@ fun MainScreen(
     val app = context.applicationContext as Application
     val viewModel: MainScreenViewModel = viewModel { MainScreenViewModel(app) }
     val state by viewModel.uiState.collectAsState(initial = MainScreenState())
-    val blockedAppsManager = remember { BlockedAppsManager(context) }
+    val themeSettings by viewModel.themeSettings.collectAsState(initial = ThemeSettings("SYSTEM", false))
     var showThemeDialog by remember { mutableStateOf(false) }
 
     val TextPrimary = MaterialTheme.colorScheme.onBackground
@@ -595,7 +599,7 @@ fun MainScreen(
                             BounceButton(
                                 onClick = {
                                     viewModel.dismissUsageStatsDisclosure()
-                                    viewModel.openUsageStatsSettings(context)
+                                    viewModel.openUsageStatsSettings()
                                 },
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
                             ) {
@@ -668,7 +672,7 @@ fun MainScreen(
 
                             // Segmented theme selection
                             val themeOptions = listOf("SYSTEM", "LIGHT", "DARK")
-                            val currentThemeMode = blockedAppsManager.getThemeMode()
+                            val currentThemeMode = themeSettings.themeMode
 
                             Row(
                                 modifier = Modifier
@@ -694,7 +698,7 @@ fun MainScreen(
                                             .clip(RoundedCornerShape(10.dp))
                                             .background(chipBg)
                                             .clickable {
-                                                blockedAppsManager.setThemeMode(option)
+                                                viewModel.setThemeMode(option)
                                             }
                                             .padding(vertical = 10.dp),
                                         contentAlignment = Alignment.Center
@@ -737,12 +741,12 @@ fun MainScreen(
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
-                                val isDynamicEnabled = blockedAppsManager.getUseDynamicColor()
+                                val isDynamicEnabled = themeSettings.useDynamicColor
                                 NeonToggle(
                                     checked = isDynamicEnabled,
                                     enabled = isAndroid12Plus,
                                     onCheckedChange = { checked ->
-                                        blockedAppsManager.setUseDynamicColor(checked)
+                                        viewModel.setUseDynamicColor(checked)
                                     }
                                 )
                             }

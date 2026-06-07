@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -15,17 +17,18 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.antigravity.distractionshield.theme.DistractionBlockerTheme
 import com.antigravity.distractionshield.theme.NeonCyan
 import com.antigravity.distractionshield.ui.components.AuroraBackground
 import com.antigravity.distractionshield.ui.components.BounceButton
 import com.antigravity.distractionshield.ui.components.GlassmorphicCard
+import com.antigravity.distractionshield.presentation.blocker.BlockerViewModel
 import kotlinx.coroutines.delay
 import java.util.Locale
 
@@ -34,7 +37,6 @@ class BlockerActivity : ComponentActivity() {
     companion object {
         const val EXTRA_BLOCKED_PACKAGE = "blocked_package"
         
-        // Random focus quotes to encourage the user
         private val QUOTES = listOf(
             "Focus is a superpower. Protect it.",
             "You chose this focus session. Stay strong.",
@@ -45,41 +47,22 @@ class BlockerActivity : ComponentActivity() {
         )
     }
 
-    private lateinit var blockedAppsManager: BlockedAppsManager
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        blockedAppsManager = BlockedAppsManager(applicationContext)
-
         enableEdgeToEdge()
 
-        // Select a quote based on current time index to vary it across launches
         val quote = QUOTES[(System.currentTimeMillis() % QUOTES.size).toInt()]
         val blockedPackage = intent.getStringExtra(EXTRA_BLOCKED_PACKAGE) ?: "Blocked App"
 
         setContent {
-            val themeMode = remember { mutableStateOf(blockedAppsManager.getThemeMode()) }
-            val useDynamicColor = remember { mutableStateOf(blockedAppsManager.getUseDynamicColor()) }
-
-            DisposableEffect(blockedAppsManager) {
-                val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                    if (key == BlockedAppsManager.KEY_THEME_MODE) {
-                        themeMode.value = blockedAppsManager.getThemeMode()
-                    } else if (key == BlockedAppsManager.KEY_USE_DYNAMIC_COLOR) {
-                        useDynamicColor.value = blockedAppsManager.getUseDynamicColor()
-                    }
-                }
-                blockedAppsManager.registerListener(listener)
-                onDispose {
-                    blockedAppsManager.unregisterListener(listener)
-                }
-            }
+            val viewModel: BlockerViewModel = viewModel { BlockerViewModel() }
+            val themeSettings by viewModel.themeSettings.collectAsStateWithLifecycle()
+            val focusSession by viewModel.focusSession.collectAsStateWithLifecycle()
 
             DistractionBlockerTheme(
-                themeMode = themeMode.value,
-                useDynamicColor = useDynamicColor.value
+                themeMode = themeSettings.themeMode,
+                useDynamicColor = themeSettings.useDynamicColor
             ) {
-                // Intercept hardware Back press and force user to exit to Launcher
                 BackHandler {
                     exitToLauncher()
                 }
@@ -87,10 +70,10 @@ class BlockerActivity : ComponentActivity() {
                 BlockerScreen(
                     quote = quote,
                     blockedPackage = blockedPackage,
-                    blockedAppsManager = blockedAppsManager,
+                    sessionEndTime = focusSession.endTime,
+                    isSessionActive = focusSession.isActive,
                     onExitClick = { exitToLauncher() },
                     onSessionExpired = {
-                        // Finish the blocker once the session ends
                         finish()
                     }
                 )
@@ -111,21 +94,21 @@ class BlockerActivity : ComponentActivity() {
 fun BlockerScreen(
     quote: String,
     blockedPackage: String,
-    blockedAppsManager: BlockedAppsManager,
+    sessionEndTime: Long,
+    isSessionActive: Boolean,
     onExitClick: () -> Unit,
     onSessionExpired: () -> Unit
 ) {
-    var timeRemainingMillis by remember { 
-        mutableStateOf(blockedAppsManager.getSessionEndTime() - System.currentTimeMillis()) 
+    var timeRemainingMillis by remember(sessionEndTime) { 
+        mutableStateOf(sessionEndTime - System.currentTimeMillis()) 
     }
 
-    // Launch ticker to update remaining time every second
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(sessionEndTime, isSessionActive) {
         while (true) {
-            val remaining = blockedAppsManager.getSessionEndTime() - System.currentTimeMillis()
+            val remaining = sessionEndTime - System.currentTimeMillis()
             timeRemainingMillis = remaining
 
-            if (remaining <= 0L || !blockedAppsManager.isSessionActive()) {
+            if (remaining <= 0L || !isSessionActive) {
                 onSessionExpired()
                 break
             }
@@ -153,7 +136,6 @@ fun BlockerScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    // Shield Lock Icon with Cyan Glow (Custom Canvas Drawing)
                     Box(
                         modifier = Modifier.padding(bottom = 16.dp),
                         contentAlignment = Alignment.Center
@@ -162,7 +144,6 @@ fun BlockerScreen(
                             val strokeWidth = 3.dp.toPx()
                             val shackleRadius = 13.dp.toPx()
                             
-                            // Draw shackle (arc on top)
                             drawArc(
                                 color = NeonCyan,
                                 startAngle = 180f,
@@ -173,7 +154,6 @@ fun BlockerScreen(
                                 style = Stroke(width = strokeWidth)
                             )
                             
-                            // Draw lock body
                             drawRoundRect(
                                 color = NeonCyan,
                                 topLeft = Offset(size.width * 0.2f, size.height * 0.4f),
@@ -182,14 +162,12 @@ fun BlockerScreen(
                                 style = Stroke(width = strokeWidth)
                             )
                             
-                            // Draw keyhole circle
                             drawCircle(
                                 color = NeonCyan,
                                 radius = 4.dp.toPx(),
                                 center = Offset(size.width / 2, size.height * 0.58f)
                             )
                             
-                            // Draw keyhole bar
                             drawLine(
                                 color = NeonCyan,
                                 start = Offset(size.width / 2, size.height * 0.6f),
@@ -199,7 +177,6 @@ fun BlockerScreen(
                         }
                     }
 
-                    // Main Locked Title
                     Text(
                         text = "Focus Lock Active",
                         fontSize = 24.sp,
@@ -209,7 +186,6 @@ fun BlockerScreen(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    // Quote Card Display
                     Text(
                         text = "\"$quote\"",
                         fontSize = 15.sp,
@@ -220,7 +196,6 @@ fun BlockerScreen(
                         modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 24.dp)
                     )
 
-                    // Countdown Timer Display
                     Text(
                         text = formatTime(timeRemainingMillis),
                         fontSize = 42.sp,
@@ -231,7 +206,6 @@ fun BlockerScreen(
                         modifier = Modifier.padding(bottom = 32.dp)
                     )
 
-                    // Exit to Launcher button (Bounce Animation)
                     BounceButton(
                         onClick = onExitClick,
                         modifier = Modifier.fillMaxWidth()
@@ -249,9 +223,6 @@ fun BlockerScreen(
     }
 }
 
-/**
- * Format remaining milliseconds into visual HH:MM:SS or MM:SS format
- */
 private fun formatTime(millis: Long): String {
     if (millis <= 0) return "00:00"
     val totalSeconds = millis / 1000

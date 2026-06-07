@@ -10,11 +10,15 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.antigravity.distractionshield.di.DependencyProvider
+import com.antigravity.distractionshield.domain.repository.BlockedAppsRepository
+import com.antigravity.distractionshield.domain.repository.SessionRepository
 import kotlinx.coroutines.*
 
 class AppBlockerForegroundService : Service() {
 
-    private lateinit var blockedAppsManager: BlockedAppsManager
+    private lateinit var sessionRepository: SessionRepository
+    private lateinit var blockedAppsRepository: BlockedAppsRepository
     private var serviceJob: Job? = null
     private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -29,7 +33,8 @@ class AppBlockerForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        blockedAppsManager = BlockedAppsManager(applicationContext)
+        sessionRepository = DependencyProvider.sessionRepository
+        blockedAppsRepository = DependencyProvider.blockedAppsRepository
         createNotificationChannel()
     }
 
@@ -69,7 +74,7 @@ class AppBlockerForegroundService : Service() {
 
         serviceJob = serviceScope.launch {
             while (isActive) {
-                if (!blockedAppsManager.isSessionActive()) {
+                if (!sessionRepository.isSessionActive()) {
                     withContext(Dispatchers.Main) {
                         stopService()
                     }
@@ -87,7 +92,7 @@ class AppBlockerForegroundService : Service() {
         
         if (foregroundPackage == packageName) return
 
-        val blockedApps = blockedAppsManager.getBlockedApps()
+        val blockedApps = blockedAppsRepository.getBlockedApps()
         if (blockedApps.contains(foregroundPackage)) {
             Log.d("AppBlockerForegroundService", "Intercepted: $foregroundPackage. Redirecting to BlockerActivity.")
             

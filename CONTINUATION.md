@@ -8,9 +8,10 @@ This file maintains the development state of the **Distraction Blocker** app acr
 ## Current State & Context
 - **Project Goal**: A SwiftUI-level premium, minimalist app blocker built using Jetpack Compose on Android.
 - **Key Mechanics**:
-  - `AccessibilityService` for instantaneous window interception.
+  - `AppBlockerForegroundService` utilizing the `UsageStatsManager` API for background app polling and redirection (500ms ticks).
   - Strict block session timer where user cannot bypass the lock.
   - Expiry prompt: Option to extend or release.
+  - `BootReceiver` to restart the monitoring service on device reboot if a session is currently active.
   - **Premium Visual Overhaul & Theme Engine (Completed)**:
     - Pure white background (light mode) and deep obsidian black background (dark mode) with organic, morphing irregular gradient shapes using 5 colors.
     - Custom typography using the offline-bundled **Outfit** font family (loaded directly from resources).
@@ -22,7 +23,7 @@ This file maintains the development state of the **Distraction Blocker** app acr
   - IDE/Build: Android CLI (`C:\Users\hp1\AppData\AndroidCLI\android.exe`)
   - Target SDK: API 33+ (needed for native glass and runtime shaders), Min SDK: API 24 (Android 7.0).
   - ANDROID_HOME: `C:\Users\hp1\AppData\Local\Android\Sdk`
-  - Latest Release APK: Copied to `release/app-debug.apk`.
+  - Latest Release APK: Located at [release/app-release.apk](file:///C:/Users/hp1/Desktop/Distraction-bloc/release/app-release.apk) and Debug APK at [release/app-debug.apk](file:///C:/Users/hp1/Desktop/Distraction-bloc/release/app-debug.apk).
 
 ## Next Steps
 1. **Explore Visual & Dashboard Upgrades**:
@@ -30,7 +31,7 @@ This file maintains the development state of the **Distraction Blocker** app acr
    - Build a swipeable Cinematic Onboarding tour for permissions and user setup.
    - Create a Focus Insights dashboard tab.
 2. **Security & Logic Enhancements**:
-   - Implement Blocker Bypass Protection to prevent force-stops or disabling accessibility settings during lock sessions.
+   - Implement Blocker Bypass Protection to prevent force-stops or disabling usage stats permissions during active lock sessions.
    - Design App Grouping/Profiles.
    - Build Recurring Block Schedules.
 

@@ -5,6 +5,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1] - 2026-06-07
+
+### Fixed
+- Fixed compilation errors in [MainScreen.kt](file:///C:/Users/hp1/Desktop/Distraction-bloc/app/src/main/java/com/antigravity/distractionshield/ui/main/MainScreen.kt) by adding missing imports for `AppInfo`, `NeonCyan`, `GlassBase`, `GlassBorderDark`, and `GlassBorderLight`.
+- Fixed parameter mismatch in `viewModel.openUsageStatsSettings()` within [MainScreen.kt](file:///C:/Users/hp1/Desktop/Distraction-bloc/app/src/main/java/com/antigravity/distractionshield/ui/main/MainScreen.kt).
+- Resolved release build AAPT2 resource compilation error on `ic_launcher_foreground.png` by setting `isCrunchPngs = false` in release build type inside [build.gradle.kts](file:///C:/Users/hp1/Desktop/Distraction-bloc/app/build.gradle.kts).
+- Compiled and copied both debug (`app-debug.apk`) and release (`app-release.apk`) builds to [release](file:///C:/Users/hp1/Desktop/Distraction-bloc/release) directory.
+
+## [0.7.0] - 2026-06-07
+
+### Added
+- Created `AppBlockerForegroundService` which executes as a background foreground service of type `specialUse` (subtyped as "Focus sessions blocking prevention").
+- Integrated the `UsageStatsManager` API to monitor the foreground application activity via a background coroutine polling every 500ms.
+- Introduced `BootReceiver` broadcast receiver listening for `BOOT_COMPLETED` to resume active focus sessions and start the foreground blocker service automatically upon system reboot.
+- Declared permissions in `AndroidManifest.xml`: `PACKAGE_USAGE_STATS`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`, `RECEIVE_BOOT_COMPLETED`, and `POST_NOTIFICATIONS`.
+
+### Changed
+- Migrated the app blocking mechanism entirely from the `AccessibilityService` API to the `UsageStatsManager` API, reducing security flags and user onboarding friction.
+- Updated `MainScreenViewModel` and `MainScreen` to check for and request Usage Stats Access permission (`Settings.ACTION_USAGE_ACCESS_SETTINGS`) instead of Accessibility service access.
+- Refactored session start, extend, and stop methods in the ViewModel to control the lifetime of `AppBlockerForegroundService`.
+- Removed `AppBlockerService.kt` and `res/xml/accessibility_service_config.xml`.
+- Compiled and released a signed release APK update at `release/app-debug.apk`.
+
 ## [0.6.0] - 2026-06-06
 
 ### Added

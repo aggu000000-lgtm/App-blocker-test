@@ -1,32 +1,34 @@
 package com.antigravity.distractionshield.ui.main
 
-import android.app.AppOpsManager
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.antigravity.distractionshield.AppBlockerForegroundService
-import com.antigravity.distractionshield.BlockedAppsManager
-import kotlinx.coroutines.Dispatchers
+import com.antigravity.distractionshield.di.DependencyProvider
+import com.antigravity.distractionshield.domain.model.AppInfo
+import com.antigravity.distractionshield.domain.model.ThemeSettings
+import com.antigravity.distractionshield.domain.usecase.CheckUsageStatsPermissionUseCase
+import com.antigravity.distractionshield.domain.usecase.EndFocusSessionUseCase
+import com.antigravity.distractionshield.domain.usecase.ExtendFocusSessionUseCase
+import com.antigravity.distractionshield.domain.usecase.GetFocusSessionUseCase
+import com.antigravity.distractionshield.domain.usecase.GetInstalledAppsUseCase
+import com.antigravity.distractionshield.domain.usecase.GetThemeSettingsUseCase
+import com.antigravity.distractionshield.domain.usecase.OpenUsageStatsSettingsUseCase
+import com.antigravity.distractionshield.domain.usecase.SetThemeSettingsUseCase
+import com.antigravity.distractionshield.domain.usecase.StartFocusSessionUseCase
+import com.antigravity.distractionshield.domain.usecase.ToggleBlockedAppUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-
-data class AppInfo(
-    val name: String,
-    val packageName: String,
-    val isBlocked: Boolean
-)
 
 data class MainScreenState(
     val installedApps: List<AppInfo> = emptyList(),
@@ -41,128 +43,131 @@ data class MainScreenState(
     val isLoading: Boolean = true
 )
 
-class MainScreenViewModel(application: Application) : AndroidViewModel(application) {
+class MainScreenViewModel @JvmOverloads constructor(
+    application: Application,
+    private val getInstalledAppsUseCase: GetInstalledAppsUseCase = DependencyProvider.getInstalledAppsUseCase,
+    private val toggleBlockedAppUseCase: ToggleBlockedAppUseCase = DependencyProvider.toggleBlockedAppUseCase,
+    private val startFocusSessionUseCase: StartFocusSessionUseCase = DependencyProvider.startFocusSessionUseCase,
+    private val extendFocusSessionUseCase: ExtendFocusSessionUseCase = DependencyProvider.extendFocusSessionUseCase,
+    private val endFocusSessionUseCase: EndFocusSessionUseCase = DependencyProvider.endFocusSessionUseCase,
+    private val getFocusSessionUseCase: GetFocusSessionUseCase = DependencyProvider.getFocusSessionUseCase,
+    private val checkUsageStatsPermissionUseCase: CheckUsageStatsPermissionUseCase = DependencyProvider.checkUsageStatsPermissionUseCase,
+    private val openUsageStatsSettingsUseCase: OpenUsageStatsSettingsUseCase = DependencyProvider.openUsageStatsSettingsUseCase,
+    private val getThemeSettingsUseCase: GetThemeSettingsUseCase = DependencyProvider.getThemeSettingsUseCase,
+    private val setThemeSettingsUseCase: SetThemeSettingsUseCase = DependencyProvider.setThemeSettingsUseCase
+) : AndroidViewModel(application) {
 
-    private val context = application.applicationContext
-    private val blockedAppsManager = BlockedAppsManager(context)
-    private val packageManager: PackageManager = context.packageManager
+    private val context: Context = application.applicationContext
 
     private val _uiState = MutableStateFlow(MainScreenState())
     val uiState: StateFlow<MainScreenState> = _uiState.asStateFlow()
 
-    private var allApps: List<AppInfo> = emptyList()
+    private val searchQueryFlow = MutableStateFlow("")
+
+    val themeSettings: StateFlow<ThemeSettings> = getThemeSettingsUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ThemeSettings("SYSTEM", false)
+        )
 
     init {
-        loadApps()
-        startStatusTicker()
-        if (blockedAppsManager.isSessionActive()) {
-            startService()
-        }
-    }
-
-    fun loadApps() {
+        // Observe installed apps and combine with search
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val apps = withContext(Dispatchers.IO) {
-                try {
-                    val packages = packageManager.getInstalledPackages(0)
-                    val blockedSet = blockedAppsManager.getBlockedApps()
+            getInstalledAppsUseCase().collect { apps ->
+                _uiState.update {
+                    it.copy(
+                        installedApps = apps,
+                        isLoading = false
+                    )
+                }
+                filterApps(searchQueryFlow.value)
+            }
+        }
 
-                    packages.mapNotNull { pkg ->
-                        val launchIntent = packageManager.getLaunchIntentForPackage(pkg.packageName)
-                        if (launchIntent != null && pkg.packageName != context.packageName) {
-                            val name = pkg.applicationInfo?.loadLabel(packageManager)?.toString() ?: pkg.packageName
-                            AppInfo(
-                                name = name,
-                                packageName = pkg.packageName,
-                                isBlocked = blockedSet.contains(pkg.packageName)
-                            )
-                        } else {
-                            null
-                        }
-                    }.sortedBy { it.name }
-                } catch (e: Exception) {
-                    emptyList()
+        // Observe focus session updates reactively
+        viewModelScope.launch {
+            var wasSessionActiveLastCheck = false
+            getFocusSessionUseCase().collect { focusSession ->
+                val isActiveNow = focusSession.isActive
+                val sessionEndTime = focusSession.endTime
+
+                val showPrompt = if (wasSessionActiveLastCheck && !isActiveNow && sessionEndTime > 0) {
+                    true
+                } else {
+                    _uiState.value.showExtensionPrompt
+                }
+
+                if (wasSessionActiveLastCheck && !isActiveNow) {
+                    stopService()
+                }
+
+                wasSessionActiveLastCheck = isActiveNow
+
+                _uiState.update {
+                    it.copy(
+                        isSessionActive = isActiveNow,
+                        sessionEndTime = sessionEndTime,
+                        sessionTotalDuration = focusSession.totalDuration,
+                        showExtensionPrompt = showPrompt
+                    )
                 }
             }
-            allApps = apps
-            _uiState.update {
-                it.copy(
-                    installedApps = apps,
-                    isLoading = false
-                )
+        }
+
+        // Periodic permission status monitoring
+        viewModelScope.launch {
+            while (true) {
+                val isPermissionGranted = checkUsageStatsPermissionUseCase()
+                if (_uiState.value.isUsageStatsGranted != isPermissionGranted) {
+                    _uiState.update { it.copy(isUsageStatsGranted = isPermissionGranted) }
+                }
+                delay(1000L)
             }
-            filterApps(_uiState.value.searchQuery)
         }
     }
 
     fun onSearchQueryChanged(query: String) {
+        searchQueryFlow.value = query
         _uiState.update { it.copy(searchQuery = query) }
         filterApps(query)
     }
 
     private fun filterApps(query: String) {
+        val apps = _uiState.value.installedApps
         val filtered = if (query.isEmpty()) {
-            allApps
+            apps
         } else {
-            allApps.filter { it.name.contains(query, ignoreCase = true) || it.packageName.contains(query, ignoreCase = true) }
+            apps.filter { it.name.contains(query, ignoreCase = true) || it.packageName.contains(query, ignoreCase = true) }
         }
         _uiState.update { it.copy(filteredApps = filtered) }
     }
 
     fun toggleAppBlock(packageName: String) {
-        val currentApp = allApps.find { it.packageName == packageName } ?: return
-        val newBlockedState = !currentApp.isBlocked
-
-        if (newBlockedState) {
-            blockedAppsManager.addBlockedApp(packageName)
-        } else {
-            blockedAppsManager.removeBlockedApp(packageName)
+        viewModelScope.launch {
+            toggleBlockedAppUseCase(packageName)
         }
-
-        allApps = allApps.map {
-            if (it.packageName == packageName) it.copy(isBlocked = newBlockedState) else it
-        }
-        _uiState.update { it.copy(installedApps = allApps) }
-        filterApps(_uiState.value.searchQuery)
     }
 
     fun startFocusSession(durationMillis: Long) {
-        blockedAppsManager.startSession(durationMillis)
-        startService()
-        _uiState.update {
-            it.copy(
-                isSessionActive = true,
-                sessionEndTime = blockedAppsManager.getSessionEndTime(),
-                sessionTotalDuration = blockedAppsManager.getSessionTotalDuration(),
-                showExtensionPrompt = false
-            )
+        viewModelScope.launch {
+            startFocusSessionUseCase(durationMillis)
+            startService()
         }
     }
 
     fun extendFocusSession(durationMillis: Long) {
-        blockedAppsManager.extendSession(durationMillis)
-        startService()
-        _uiState.update {
-            it.copy(
-                isSessionActive = true,
-                sessionEndTime = blockedAppsManager.getSessionEndTime(),
-                sessionTotalDuration = blockedAppsManager.getSessionTotalDuration(),
-                showExtensionPrompt = false
-            )
+        viewModelScope.launch {
+            extendFocusSessionUseCase(durationMillis)
+            startService()
         }
     }
 
     fun endFocusSession() {
-        blockedAppsManager.endSession()
-        stopService()
-        _uiState.update {
-            it.copy(
-                isSessionActive = false,
-                sessionEndTime = 0L,
-                sessionTotalDuration = 0L,
-                showExtensionPrompt = false
-            )
+        viewModelScope.launch {
+            endFocusSessionUseCase()
+            stopService()
         }
     }
 
@@ -178,16 +183,19 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { it.copy(showUsageStatsDisclosure = false) }
     }
 
-    fun openUsageStatsSettings(context: Context) {
-        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    fun openUsageStatsSettings() {
+        openUsageStatsSettingsUseCase()
+    }
+
+    fun setThemeMode(mode: String) {
+        viewModelScope.launch {
+            setThemeSettingsUseCase.setThemeMode(mode)
         }
-        try {
-            intent.data = Uri.parse("package:${context.packageName}")
-            context.startActivity(intent)
-        } catch (e: Exception) {
-            intent.data = null
-            context.startActivity(intent)
+    }
+
+    fun setUseDynamicColor(use: Boolean) {
+        viewModelScope.launch {
+            setThemeSettingsUseCase.setUseDynamicColor(use)
         }
     }
 
@@ -215,51 +223,5 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
         } catch (e: Exception) {
             Log.e("MainScreenViewModel", "Failed to stop foreground service", e)
         }
-    }
-
-    private fun startStatusTicker() {
-        viewModelScope.launch {
-            var wasSessionActiveLastCheck = blockedAppsManager.isSessionActive()
-
-            while (true) {
-                val isPermissionGranted = isUsageStatsPermissionGranted(context)
-                val isActiveNow = blockedAppsManager.isSessionActive()
-                val sessionEndTime = blockedAppsManager.getSessionEndTime()
-
-                val showPrompt = if (wasSessionActiveLastCheck && !isActiveNow && sessionEndTime > 0) {
-                    true
-                } else {
-                    _uiState.value.showExtensionPrompt
-                }
-
-                if (wasSessionActiveLastCheck && !isActiveNow) {
-                    stopService()
-                }
-
-                wasSessionActiveLastCheck = isActiveNow
-
-                _uiState.update {
-                    it.copy(
-                        isUsageStatsGranted = isPermissionGranted,
-                        isSessionActive = isActiveNow,
-                        sessionEndTime = sessionEndTime,
-                        sessionTotalDuration = blockedAppsManager.getSessionTotalDuration(),
-                        showExtensionPrompt = showPrompt
-                    )
-                }
-                delay(1000L)
-            }
-        }
-    }
-
-    @Suppress("DEPRECATION")
-    private fun isUsageStatsPermissionGranted(context: Context): Boolean {
-        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager ?: return false
-        val mode = appOps.noteOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            android.os.Process.myUid(),
-            context.packageName
-        )
-        return mode == AppOpsManager.MODE_ALLOWED
     }
 }

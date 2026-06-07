@@ -13,7 +13,7 @@ A premium, minimalist app blocker for Android built using **Jetpack Compose** (M
 - **Liquid Glass Materials**: Frosted-glass containers, thin refraction borders, and tactile spring physics on all touch targets.
 - **Strict Lockouts**: No-bypass full-screen interception activity covering blocked applications during active focus sessions.
 - **Expiry Prompt**: Prompt to immediately extend deep focus when a session terminates, preventing instant relapse.
-- **Real-Time Detection**: Minimal resource footprint using event-driven `AccessibilityService`.
+- **Real-Time Detection**: Background app monitoring using `UsageStatsManager` API via `AppBlockerForegroundService` (runs with 500ms polling interval).
 
 ## Documentation Map
 - [CONTINUATION.md](file:///c:/Users/hp1/Desktop/Distraction-bloc/CONTINUATION.md): Multi-session agent handoff, target variables, and next coding tasks.

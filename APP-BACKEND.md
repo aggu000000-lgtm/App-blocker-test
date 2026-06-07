@@ -9,21 +9,22 @@ The background layer coordinates app scanning, session timers, and real-time win
 
 ```mermaid
 graph TD
-    A[AccessibilityEvent: WINDOW_STATE_CHANGED] --> B{Is Session Active?}
-    B -- No --> C[Allow Launch]
-    B -- Yes --> D{Is Package in Blocked List?}
-    D -- No --> C
-    D -- Yes --> E[Launch BlockerActivity]
-    E --> F[Trigger GLOBAL_ACTION_HOME]
+    A[Periodic Tick: Every 500ms] --> B{Is Session Active?}
+    B -- No --> C[Stop Foreground Service]
+    B -- Yes --> D[Query Foreground Package via UsageStatsManager]
+    D --> E{Is Foreground Package in Blocked List?}
+    E -- No --> F[Allow Launch / Do Nothing]
+    E -- Yes --> G[Launch BlockerActivity]
+    G --> H[Redirect User to Launcher Home]
 ```
 
-1. **Accessibility Event**: We listen exclusively to `AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED` which triggers when a new package window comes to focus.
+1. **Foreground Polling Service**: `AppBlockerForegroundService` runs a background coroutine loop that queries the active foreground application package name using the `UsageStatsManager` API every 500ms when a focus session is active.
 2. **Session Verification**: The `BlockedAppsManager` check determines if a lock session is currently active and the current epoch time is less than `sessionEndTimeMillis`.
-3. **Redirection Action**: If both are true, we start `BlockerActivity` with:
+3. **Redirection Action**: If a blocked package is detected in the foreground, we launch `BlockerActivity` with:
    ```kotlin
    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
    ```
-   and immediately execute `performGlobalAction(GLOBAL_ACTION_HOME)` to force the underlying target app to collapse.
+   `BlockerActivity` acts as a persistent blocker overlay and redirects back-presses or click events to the launcher home intent (`Intent.CATEGORY_HOME`) to keep the user focused.
 
 ## 2. Storage & State Persistence
 
