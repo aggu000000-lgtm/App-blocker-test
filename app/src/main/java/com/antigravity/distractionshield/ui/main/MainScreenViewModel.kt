@@ -1,16 +1,17 @@
 package com.antigravity.distractionshield.ui.main
 
+import android.app.AppOpsManager
 import android.app.Application
-import android.accessibilityservice.AccessibilityService
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.provider.Settings
-import android.text.TextUtils
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.antigravity.distractionshield.AppBlockerService
+import com.antigravity.distractionshield.AppBlockerForegroundService
 import com.antigravity.distractionshield.BlockedAppsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -31,12 +32,12 @@ data class MainScreenState(
     val installedApps: List<AppInfo> = emptyList(),
     val filteredApps: List<AppInfo> = emptyList(),
     val searchQuery: String = "",
-    val isAccessibilityEnabled: Boolean = false,
+    val isUsageStatsGranted: Boolean = false,
     val isSessionActive: Boolean = false,
     val sessionEndTime: Long = 0L,
     val sessionTotalDuration: Long = 0L,
     val showExtensionPrompt: Boolean = false,
-    val showAccessibilityDisclosure: Boolean = false,
+    val showUsageStatsDisclosure: Boolean = false,
     val isLoading: Boolean = true
 )
 
@@ -49,17 +50,16 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
     private val _uiState = MutableStateFlow(MainScreenState())
     val uiState: StateFlow<MainScreenState> = _uiState.asStateFlow()
 
-    // Cache of all loaded launcher apps
     private var allApps: List<AppInfo> = emptyList()
 
     init {
         loadApps()
         startStatusTicker()
+        if (blockedAppsManager.isSessionActive()) {
+            startService()
+        }
     }
 
-    /**
-     * Loads installed apps containing launcher intents in the background.
-     */
     fun loadApps() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -96,9 +96,6 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /**
-     * Filters apps based on search query.
-     */
     fun onSearchQueryChanged(query: String) {
         _uiState.update { it.copy(searchQuery = query) }
         filterApps(query)
@@ -113,9 +110,6 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { it.copy(filteredApps = filtered) }
     }
 
-    /**
-     * Toggles the blocked state of a package.
-     */
     fun toggleAppBlock(packageName: String) {
         val currentApp = allApps.find { it.packageName == packageName } ?: return
         val newBlockedState = !currentApp.isBlocked
@@ -126,7 +120,6 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
             blockedAppsManager.removeBlockedApp(packageName)
         }
 
-        // Update list cache and UI state
         allApps = allApps.map {
             if (it.packageName == packageName) it.copy(isBlocked = newBlockedState) else it
         }
@@ -134,11 +127,9 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
         filterApps(_uiState.value.searchQuery)
     }
 
-    /**
-     * Starts a focus session.
-     */
     fun startFocusSession(durationMillis: Long) {
         blockedAppsManager.startSession(durationMillis)
+        startService()
         _uiState.update {
             it.copy(
                 isSessionActive = true,
@@ -149,11 +140,9 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /**
-     * Extends the active/expired focus session.
-     */
     fun extendFocusSession(durationMillis: Long) {
         blockedAppsManager.extendSession(durationMillis)
+        startService()
         _uiState.update {
             it.copy(
                 isSessionActive = true,
@@ -164,11 +153,9 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /**
-     * Ends the focus session.
-     */
     fun endFocusSession() {
         blockedAppsManager.endSession()
+        stopService()
         _uiState.update {
             it.copy(
                 isSessionActive = false,
@@ -179,65 +166,81 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /**
-     * Dismisses the expired session extension prompt.
-     */
     fun dismissExtensionPrompt() {
         _uiState.update { it.copy(showExtensionPrompt = false) }
     }
 
-    /**
-     * Shows the accessibility disclosure dialog.
-     */
-    fun showAccessibilityDisclosure() {
-        _uiState.update { it.copy(showAccessibilityDisclosure = true) }
+    fun showUsageStatsDisclosure() {
+        _uiState.update { it.copy(showUsageStatsDisclosure = true) }
     }
 
-    /**
-     * Dismisses the accessibility disclosure dialog.
-     */
-    fun dismissAccessibilityDisclosure() {
-        _uiState.update { it.copy(showAccessibilityDisclosure = false) }
+    fun dismissUsageStatsDisclosure() {
+        _uiState.update { it.copy(showUsageStatsDisclosure = false) }
     }
 
-    /**
-     * Directs the user to the accessibility settings screen.
-     */
-    fun openAccessibilitySettings(context: Context) {
+    fun openUsageStatsSettings(context: Context) {
+        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
         try {
-            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
+            intent.data = Uri.parse("package:${context.packageName}")
             context.startActivity(intent)
         } catch (e: Exception) {
-            // Fallback
+            intent.data = null
+            context.startActivity(intent)
         }
     }
 
-    /**
-     * Periodically updates service statuses and timer countdown states.
-     */
+    private fun startService() {
+        val intent = Intent(context, AppBlockerForegroundService::class.java).apply {
+            action = AppBlockerForegroundService.ACTION_START
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        } catch (e: Exception) {
+            Log.e("MainScreenViewModel", "Failed to start foreground service", e)
+        }
+    }
+
+    private fun stopService() {
+        val intent = Intent(context, AppBlockerForegroundService::class.java).apply {
+            action = AppBlockerForegroundService.ACTION_STOP
+        }
+        try {
+            context.startService(intent)
+        } catch (e: Exception) {
+            Log.e("MainScreenViewModel", "Failed to stop foreground service", e)
+        }
+    }
+
     private fun startStatusTicker() {
         viewModelScope.launch {
             var wasSessionActiveLastCheck = blockedAppsManager.isSessionActive()
 
             while (true) {
-                val isServiceEnabled = isAccessibilityServiceEnabled(context, AppBlockerService::class.java)
+                val isPermissionGranted = isUsageStatsPermissionGranted(context)
                 val isActiveNow = blockedAppsManager.isSessionActive()
                 val sessionEndTime = blockedAppsManager.getSessionEndTime()
 
-                // Detect when session has transitioned from active to inactive (expired)
                 val showPrompt = if (wasSessionActiveLastCheck && !isActiveNow && sessionEndTime > 0) {
                     true
                 } else {
                     _uiState.value.showExtensionPrompt
                 }
 
+                if (wasSessionActiveLastCheck && !isActiveNow) {
+                    stopService()
+                }
+
                 wasSessionActiveLastCheck = isActiveNow
 
                 _uiState.update {
                     it.copy(
-                        isAccessibilityEnabled = isServiceEnabled,
+                        isUsageStatsGranted = isPermissionGranted,
                         isSessionActive = isActiveNow,
                         sessionEndTime = sessionEndTime,
                         sessionTotalDuration = blockedAppsManager.getSessionTotalDuration(),
@@ -249,24 +252,14 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /**
-     * Checks if a specific AccessibilityService component is enabled.
-     */
-    private fun isAccessibilityServiceEnabled(context: Context, service: Class<out AccessibilityService>): Boolean {
-        val expectedComponentName = ComponentName(context, service)
-        val enabledServices = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: return false
-        val colonSplitter = TextUtils.SimpleStringSplitter(':')
-        colonSplitter.setString(enabledServices)
-        while (colonSplitter.hasNext()) {
-            val componentNameString = colonSplitter.next()
-            val enabledService = ComponentName.unflattenFromString(componentNameString)
-            if (enabledService != null && enabledService == expectedComponentName) {
-                return true
-            }
-        }
-        return false
+    @Suppress("DEPRECATION")
+    private fun isUsageStatsPermissionGranted(context: Context): Boolean {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager ?: return false
+        val mode = appOps.noteOpNoThrow(
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+            android.os.Process.myUid(),
+            context.packageName
+        )
+        return mode == AppOpsManager.MODE_ALLOWED
     }
 }

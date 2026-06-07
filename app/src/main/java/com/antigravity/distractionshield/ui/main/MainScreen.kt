@@ -135,7 +135,7 @@ fun MainScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // 2. Permission / Status Bar
-                if (!state.isAccessibilityEnabled) {
+                if (!state.isUsageStatsGranted) {
                     GlassmorphicCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -147,21 +147,21 @@ fun MainScreen(
                                 .padding(18.dp)
                         ) {
                             Text(
-                                text = "System Service Inactive",
+                                text = "System Permission Inactive",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary,
                                 modifier = Modifier.padding(bottom = 6.dp)
                             )
                             Text(
-                                text = "The blocker requires accessibility services to intercept distracting apps. Tap below to enable.",
+                                text = "The blocker requires usage access permission to intercept distracting apps. Tap below to enable.",
                                 fontSize = 12.sp,
                                 color = TextSecondary,
                                 lineHeight = 18.sp,
                                 modifier = Modifier.padding(bottom = 14.dp)
                             )
                             BounceButton(
-                                onClick = { viewModel.showAccessibilityDisclosure() },
+                                onClick = { viewModel.showUsageStatsDisclosure() },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
@@ -517,8 +517,8 @@ fun MainScreen(
                 }
             }
 
-            // 7. Accessibility Prominent Disclosure Modal Overlay (Liquid Glass Dialog)
-            if (state.showAccessibilityDisclosure) {
+            // 7. Usage Stats Prominent Disclosure Modal Overlay (Liquid Glass Dialog)
+            if (state.showUsageStatsDisclosure) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -538,7 +538,7 @@ fun MainScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Accessibility Permission",
+                                text = "Usage Access Permission",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary,
@@ -547,7 +547,7 @@ fun MainScreen(
                             )
                             
                             Text(
-                                text = "Distraction Shield requires the Accessibility Service permission to block apps during active focus sessions. Here is how we protect your privacy:",
+                                text = "Distraction Shield requires the Usage Access permission to read the foreground app name to block distracting apps during active focus sessions. Here is how we protect your privacy:",
                                 fontSize = 13.sp,
                                 color = TextSecondary,
                                 textAlign = TextAlign.Center,
@@ -568,7 +568,7 @@ fun MainScreen(
                                  Row(verticalAlignment = Alignment.Top) {
                                      Text(text = "🎯 ", fontSize = 14.sp)
                                      Text(
-                                         text = "Purpose: We only monitor which application is currently in the foreground (window state changes) so we can block distracting apps when your lock timer is active.",
+                                         text = "Purpose: We only check which app is currently in the foreground so we can launch the lock screen if it is on your blocklist during active focus sessions.",
                                          fontSize = 12.sp,
                                          color = TextPrimary
                                      )
@@ -594,8 +594,8 @@ fun MainScreen(
                             // Action buttons
                             BounceButton(
                                 onClick = {
-                                    viewModel.dismissAccessibilityDisclosure()
-                                    viewModel.openAccessibilitySettings(context)
+                                    viewModel.dismissUsageStatsDisclosure()
+                                    viewModel.openUsageStatsSettings(context)
                                 },
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
                             ) {
@@ -612,7 +612,7 @@ fun MainScreen(
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(14.dp))
                                     .border(1.dp, GlassBorderLight, RoundedCornerShape(14.dp))
-                                    .clickable { viewModel.dismissAccessibilityDisclosure() }
+                                    .clickable { viewModel.dismissUsageStatsDisclosure() }
                                     .padding(vertical = 14.dp),
                                 contentAlignment = Alignment.Center
                             ) {
