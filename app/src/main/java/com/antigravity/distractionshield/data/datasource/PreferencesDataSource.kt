@@ -70,6 +70,24 @@ class PreferencesDataSource(private val context: Context) {
         }
     }
 
+    fun getDailyFocusDuration(dateStr: String): Long = prefs.getLong("stats_focus_duration_$dateStr", 0L)
+    fun incrementDailyFocusDuration(dateStr: String, ms: Long) {
+        val current = getDailyFocusDuration(dateStr)
+        prefs.edit().putLong("stats_focus_duration_$dateStr", current + ms).apply()
+    }
+
+    fun getDailyBlockedAttempts(dateStr: String): Int = prefs.getInt("stats_blocked_attempts_$dateStr", 0)
+    fun incrementDailyBlockedAttempts(dateStr: String) {
+        val current = getDailyBlockedAttempts(dateStr)
+        prefs.edit().putInt("stats_blocked_attempts_$dateStr", current + 1).apply()
+    }
+
+    fun getDailyRapidSwitches(dateStr: String): Int = prefs.getInt("stats_rapid_switches_$dateStr", 0)
+    fun incrementDailyRapidSwitches(dateStr: String) {
+        val current = getDailyRapidSwitches(dateStr)
+        prefs.edit().putInt("stats_rapid_switches_$dateStr", current + 1).apply()
+    }
+
     val preferenceChangesFlow: Flow<String> = callbackFlow {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key != null) {

@@ -6,10 +6,12 @@ import com.antigravity.distractionshield.data.repository.AppRepositoryImpl
 import com.antigravity.distractionshield.data.repository.BlockedAppsRepositoryImpl
 import com.antigravity.distractionshield.data.repository.SessionRepositoryImpl
 import com.antigravity.distractionshield.data.repository.ThemeRepositoryImpl
+import com.antigravity.distractionshield.data.repository.StatsRepositoryImpl
 import com.antigravity.distractionshield.domain.repository.AppRepository
 import com.antigravity.distractionshield.domain.repository.BlockedAppsRepository
 import com.antigravity.distractionshield.domain.repository.SessionRepository
 import com.antigravity.distractionshield.domain.repository.ThemeRepository
+import com.antigravity.distractionshield.domain.repository.StatsRepository
 import com.antigravity.distractionshield.domain.usecase.CheckUsageStatsPermissionUseCase
 import com.antigravity.distractionshield.domain.usecase.EndFocusSessionUseCase
 import com.antigravity.distractionshield.domain.usecase.ExtendFocusSessionUseCase
@@ -43,6 +45,10 @@ object DependencyProvider {
 
     val sessionRepository: SessionRepository by lazy {
         SessionRepositoryImpl(preferencesDataSource)
+    }
+
+    val statsRepository: StatsRepository by lazy {
+        StatsRepositoryImpl(preferencesDataSource)
     }
 
     val appRepository: AppRepository by lazy {

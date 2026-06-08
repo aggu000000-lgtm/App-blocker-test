@@ -5,6 +5,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-06-08
+
+### Added
+- Created `DailyStats` domain model to represent daily focus duration, blocked app attempts, and rapid app switches.
+- Added `StatsRepository` and `StatsRepositoryImpl` to manage daily and weekly statistics reactively.
+- Added statistics persistence helper methods to `PreferencesDataSource`.
+
+### Changed
+- Overhauled `AppBlockerForegroundService` background polling with an event-driven `UsageStatsManager` log processor.
+- Implemented robust foreground tracking with startup seed checks to prevent event omissions or duplicate tracking.
+- Added session duration calculations and rapid app-switching detection (under 10s threshold between non-launcher apps).
+- Automatically increments focus duration, blocked attempts, and rapid app switches reactively.
+
 ## [0.7.1] - 2026-06-07
 
 ### Fixed

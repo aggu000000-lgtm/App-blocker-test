@@ -38,3 +38,14 @@ graph TD
 Due to Android 11+ restrictions, we declare package querying capabilities:
 - **Queries Manifest Block**: Instead of requesting the high-risk, policy-flagged `QUERY_ALL_PACKAGES` permission, we use a targeted `<queries>` intent block matching launcher activities.
 - **Retrieval**: `packageManager.getInstalledPackages(0)` is used to list user-installed launcher apps. On Android 11+, the OS automatically filters this list to only return apps matching our launcher intent queries, ensuring privacy-compliant package retrieval.
+
+## 4. Focus Insights & Distraction Statistics
+
+To support premium data visualizations and focus scoring, the background layer tracks focus session efficiency metrics:
+
+- **Weekly Focus Duration**: Tracks active focus time (in milliseconds) per day. For every 500ms service tick, if a session is active and the foreground app is not blocked and not the launcher, we increment the daily focus duration.
+- **Apps Blocked Counts**: Tracks the number of times a user attempted to access blocked apps during active focus sessions.
+- **Rapid App-Switching (Distraction Score)**: Tracks instances where the user switches between different applications (excluding launcher home or blocker activity) in under 10 seconds. This indicates restlessness and increments the distraction count.
+- **Reactive Repository**: `StatsRepository` exposes these daily metrics through a reactive flow (`weeklyStatsFlow`) tied to `OnSharedPreferenceChangeListener`, ensuring live UI updates.
+- **Distraction Score Formula**:
+  $$Score = (BlockedAttempts \times 5) + (RapidSwitches \times 2)$$

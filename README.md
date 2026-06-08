@@ -3,7 +3,7 @@
 
 # Distraction Blocker - SwiftUI-Level Android App Blocker
 
-### 📲 [Download Latest APK (app-debug.apk)](https://github.com/aggu000000-lgtm/App-blocker-test/raw/main/release/app-debug.apk)
+### 📲 [Download Latest Release APK](https://github.com/aggu000000-lgtm/App-blocker-test/raw/main/release/app-release.apk) | [Download Latest Debug APK](https://github.com/aggu000000-lgtm/App-blocker-test/raw/main/release/app-debug.apk)
 *Install directly on your Android phone to test the Deep Focus experience.*
 
 A premium, minimalist app blocker for Android built using **Jetpack Compose** (Material 3) and Kotlin. It features a stunning **Liquid Glass** UI and strict **Session-Based Timer Locking** to help you stay focused.

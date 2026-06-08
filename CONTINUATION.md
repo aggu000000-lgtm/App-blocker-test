@@ -18,6 +18,11 @@ This file maintains the development state of the **Distraction Blocker** app acr
     - Polished 3D liquid glass cards with a diagonal animated specular shine sweep, double-gradient refraction borders, and ambient drop shadows.
     - Full-scale dynamic theme engine supporting System, Light, and Dark modes, plus Android 12+ wallpaper dynamic colors (Material You). Persisted reactively using `OnSharedPreferenceChangeListener`.
   - **Play Protect Compliance**: Replaced `QUERY_ALL_PACKAGES` permission with targeted `<queries>` block; added a prominent in-app disclosure dialog; signed both builds using a custom keystore `distraction_blocker_release.jks`.
+  - **Robust System Blocking & Event Tracking (Completed)**:
+    - Overhauled `AppBlockerForegroundService` with an event-driven `UsageStatsManager` log processor.
+    - Captures foreground app switches with startup seeding to prevent duplicate tracking or omissions.
+    - Calculates active focus session durations and daily stats (stored in `SharedPreferences` via `StatsRepository`).
+    - Detects rapid app-switching behavior (switches between different apps within a 10s threshold, excluding launcher/blocker app) to measure distraction metrics.
 - **Environment**:
   - OS: Windows
   - IDE/Build: Android CLI (`C:\Users\hp1\AppData\AndroidCLI\android.exe`)
@@ -29,7 +34,7 @@ This file maintains the development state of the **Distraction Blocker** app acr
 1. **Explore Visual & Dashboard Upgrades**:
    - Implement custom AGSL fragment shaders (API 33+) for real-time lens distortion, chromatic aberration, and noise grain overlays.
    - Build a swipeable Cinematic Onboarding tour for permissions and user setup.
-   - Create a Focus Insights dashboard tab.
+   - Create a Focus Insights dashboard tab (using `StatsRepository` to render the canvas-drawn charts).
 2. **Security & Logic Enhancements**:
    - Implement Blocker Bypass Protection to prevent force-stops or disabling usage stats permissions during active lock sessions.
    - Design App Grouping/Profiles.
